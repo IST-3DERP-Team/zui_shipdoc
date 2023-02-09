@@ -1,0 +1,821 @@
+<mvc:View controllerName="zuishipdoc.controller.Detail"
+    xmlns:mvc="sap.ui.core.mvc" 
+    xmlns:core="sap.ui.core"
+    xmlns:uiL="sap.ui.layout"
+    xmlns:uiT="sap.ui.table"
+    xmlns:form="sap.ui.layout.form"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:semantic="sap.m.semantic"
+    displayBlock="true">
+    <Page showHeader="false" title="{ddtext>/GENERATEPO}" showNavButton="true">
+        <VBox fitContainer="true" class="shipdocdtl"> 
+            <Panel id="delvHdrForm" height="275px" class="sapUiNoContentPadding hdrFormBgColor">
+                <Toolbar class="sapUiTinyMarginBeginEnd">
+                    <Text text="Delivery Header" class="headerTitle" />
+                    <ToolbarSpacer/>
+                    <Button id="btnEditHdr" 
+                        text="{ddtext>/EDIT}"
+                        icon="sap-icon://edit"
+                        press="onEdit"
+                        tooltip="{ddtext>/EDIT}"
+                        visible="true"/>
+                    <Button id="btnSaveHdr" 
+                        text="{ddtext>/SAVE}"
+                        icon="sap-icon://save"
+                        press="onSave"
+                        tooltip="{ddtext>/SAVE}"
+                        visible="false"/>
+                    <Button id="btnCancelHdr" 
+                        text="{ddtext>/CANCEL}"
+                        icon="sap-icon://sys-cancel"
+                        press="onCancel"
+                        tooltip="{ddtext>/CANCEL}"
+                        visible="false"/>
+                </Toolbar>
+
+                <form:Form id="headerForm" editable="true" class="sapUiNoContentPadding">
+                    <form:layout>
+                        <form:ResponsiveGridLayout
+                            labelSpanXL="4"
+                            labelSpanL="4"
+                            labelSpanM="4"
+                            labelSpanS="12"
+                            adjustLabelSpan="false"
+                            emptySpanXL="0"
+                            emptySpanL="0"
+                            emptySpanM="0"
+                            emptySpanS="0"
+                            columnsXL="4"
+                            columnsL="2"
+                            columnsM="1" 
+                            singleContainerFullSize="false" />
+                    </form:layout>
+                    <form:formContainers>
+                        <form:FormContainer ariaLabelledBy="Grp1" class="sapUiNoContentPadding">
+                            <form:formElements>
+                                <form:FormElement label="{ddtext>/DLVNO}">
+                                    <form:fields>
+                                        <Input id="delvHdrDLVNO" value="{header>/DLVNO}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/ISSPLNT}" required="false"></Label>
+                                    </form:label>
+                                    <form:fields>
+                                        <!-- <Input id="delvHdrISSPLNT" value="{header>/ISSPLNT}" editable="false" /> -->
+                                        <Input id="delvHdrISSPLNT"
+                                            type="Text" 
+                                            value="{header>/ISSPLNT}" 
+                                            showValueHelp="true"
+                                            valueHelpRequest="handleValueHelp" 
+                                            showSuggestion="true" 
+                                            suggestionItems="{path: 'issplant>/', length: 10000, templateShareable: false}" 
+                                            change="onValueHelpInputChange"
+                                            editable="false">
+                                            <suggestionItems>
+                                                <core:Item key="{issplant>PLANTCD}" text="{issplant>PLANTCD}" />
+                                            </suggestionItems>
+                                        </Input>
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/SOLDTOCUST}" required="false"></Label>
+                                    </form:label>                                
+                                    <form:fields>
+                                        <!-- <Input id="delvHdrSOLDTOCUST" value="{header>/SOLDTOCUST}" editable="false" /> -->
+                                        <Input id="delvHdrSOLDTOCUST"
+                                            type="Text" 
+                                            value="{header>/SOLDTOCUST}" 
+                                            showValueHelp="true"
+                                            valueHelpRequest="handleValueHelp" 
+                                            showSuggestion="true" 
+                                            suggestionItems="{path: 'shiptocust>/', length: 10000, templateShareable: false}" 
+                                            change="onValueHelpInputChange"
+                                            editable="false">
+                                            <suggestionItems>
+                                                <core:ListItem key="{shiptocust>CUSTOMER}" text="{shiptocust>CUSTOMER}" additionalText="{salesterm>CUSTGRP}" />
+                                            </suggestionItems>
+                                        </Input>                                        
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/BILLTOCUST}" required="false"></Label>
+                                    </form:label>
+                                    <form:fields>
+                                        <!-- <Input id="delvHdrBILLTOCUST" value="{header>/BILLTOCUST}" editable="false" /> -->
+                                        <Input id="delvHdrBILLTOCUST"
+                                            type="Text" 
+                                            value="{header>/BILLTOCUST}" 
+                                            showValueHelp="true"
+                                            valueHelpRequest="handleValueHelp" 
+                                            showSuggestion="true" 
+                                            suggestionItems="{path: 'shiptocust>/', length: 10000, templateShareable: false}" 
+                                            change="onValueHelpInputChange"
+                                            editable="false">
+                                            <suggestionItems>
+                                                <core:Item key="{shiptocust>CUSTOMER}" text="{shiptocust>CUSTOMER}" />
+                                            </suggestionItems>
+                                        </Input>                                        
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/CUSTGRP}" required="false"></Label>
+                                    </form:label>
+                                    <form:fields>
+                                        <Input id="delvHdrCUSTGRP" value="{header>/CUSTGRP}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/SALESTERM}" required="false"></Label>
+                                    </form:label>
+                                    <form:fields>
+                                        <!-- <Input id="delvHdrSALESTERM" value="{header>/SALESTERM}" editable="false" /> -->
+                                        <Input id="delvHdrSALESTERM"
+                                            type="Text" 
+                                            value="{header>/SALESTERM}" 
+                                            showValueHelp="true"
+                                            valueHelpRequest="handleValueHelp" 
+                                            showSuggestion="true" 
+                                            suggestionItems="{path: 'salesterm>/', length: 10000, templateShareable: false}" 
+                                            change="onValueHelpInputChange"
+                                            editable="false">
+                                            <suggestionItems>
+                                                <core:ListItem key="{salesterm>SALESTERM}" text="{salesterm>SALESTERM}"  additionalText="{salesterm>DESCRIPTION}" />
+                                            </suggestionItems>
+                                        </Input>
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/SALESTERMTEXT}">
+                                    <form:fields>
+                                        <Input id="delvHdrSALESTERMTEXT" value="{header>/SALESTERMTEXT}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>                                                                        
+                            </form:formElements>
+                        </form:FormContainer>
+                        <form:FormContainer ariaLabelledBy="Grp2" class="sapUiNoContentPadding">
+                            <form:formElements>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/DOCDT}" required="false"></Label>
+                                    </form:label>
+                                    <form:fields>
+                                        <DatePicker
+                                            id="delvHdrDOCDT"
+                                            value="{header>/DOCDT}"
+                                            placeholder="Enter Date"
+                                            displayFormat="MM/dd/yyyy"
+                                            valueFormat="MM/dd/yyyy"
+                                            editable="false" />                                    
+                                        <!-- <Input id="delvHdrDOCDT" value="{header>/DOCDT}" editable="false" /> -->
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/POSTDT}" required="false"></Label>
+                                    </form:label>
+                                    <form:fields>
+                                        <DatePicker
+                                            id="delvHdrPOSTDT"
+                                            value="{header>/POSTDT}"
+                                            placeholder="Enter Date"
+                                            displayFormat="MM/dd/yyyy"
+                                            valueFormat="MM/dd/yyyy"
+                                            editable="false" />                                      
+                                        <!-- <Input id="delvHdrPOSTDT" value="{header>/POSTDT}" editable="false" /> -->
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/PLANDLVDT}">
+                                    <form:fields>
+                                        <DatePicker
+                                            id="delvHdrPLANDLVDT"
+                                            value="{header>/PLANDLVDT}"
+                                            placeholder="Enter Date"
+                                            displayFormat="MM/dd/yyyy"
+                                            valueFormat="MM/dd/yyyy"
+                                            editable="false" />                                     
+                                        <!-- <Input id="delvHdrPLANDLVDT" value="{header>/PLANDLVDT}" editable="false" /> -->
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/INDCDT}">
+                                    <form:fields>
+                                        <DatePicker
+                                            id="delvHdrINDCDT"
+                                            value="{header>/INDCDT}"
+                                            placeholder="Enter Date"
+                                            displayFormat="MM/dd/yyyy"
+                                            valueFormat="MM/dd/yyyy"
+                                            editable="false" />                                     
+                                        <!-- <Input id="delvHdrINDCDT" value="{header>/INDCDT}" editable="false" /> -->
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/EXFTYDT}">
+                                    <form:fields>
+                                        <DatePicker
+                                            id="delvHdrEXFTYDT"
+                                            value="{header>/EXFTYDT}"
+                                            placeholder="Enter Date"
+                                            displayFormat="MM/dd/yyyy"
+                                            valueFormat="MM/dd/yyyy"
+                                            editable="false" />                                    
+                                        <!-- <Input id="delvHdrEXFTYDT" value="{header>/EXFTYDT}" editable="false" /> -->
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/DEPARTDT}">
+                                    <form:fields>
+                                        <DatePicker
+                                            id="delvHdrDEPARTDT"
+                                            value="{header>/DEPARTDT}"
+                                            placeholder="Enter Date"
+                                            displayFormat="MM/dd/yyyy"
+                                            valueFormat="MM/dd/yyyy"
+                                            editable="false" />                                     
+                                        <!-- <Input id="delvHdrDEPARTDT" value="{header>/DEPARTDT}" editable="false" /> -->
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement>
+                                    <form:label>
+                                        <Label text="{ddtext>/EVERS}" required="false"></Label>
+                                    </form:label>
+                                    <form:fields>
+                                        <!-- <Input id="delvHdrEVERS" value="{header>/EVERS}" editable="false" /> -->
+                                        <Input id="delvHdrEVERS"
+                                            type="Text" 
+                                            value="{ 
+                                                parts: [{ path: 'header>/EVERS' }, { value: 'EVERS' }],
+                                                formatter: '.formatValueHelp'
+                                            }" 
+                                            textFormatMode="ValueKey"	
+                                            showValueHelp="true"
+                                            valueHelpRequest="handleValueHelp" 
+                                            showSuggestion="true" 
+                                            suggestionItems="{path: 'shipmode>/', length: 10000, templateShareable: false}" 
+                                            change="onValueHelpInputChange"
+                                            editable="false">
+                                            <suggestionItems>
+                                                <core:ListItem key="{shipmode>SHIPMODE}" text="{shipmode>DESCRIPTION}" additionalText="{shipmode>SHIPMODE}" />
+                                            </suggestionItems>
+                                        </Input>                                        
+                                    </form:fields>
+                                </form:FormElement>                                                                        
+                            </form:formElements>
+                        </form:FormContainer>
+                        <form:FormContainer ariaLabelledBy="Grp3" class="sapUiNoContentPadding">
+                            <form:formElements>
+                                <form:FormElement label="{ddtext>/DEST}">
+                                    <form:fields>
+                                        <Input id="delvHdrDEST" value="{header>/DEST}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/COO}">
+                                    <form:fields>
+                                        <Input id="delvHdrCOO" value="{header>/COO}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/TOTALNOPKG}">
+                                    <form:fields>
+                                        <Input id="delvHdrTOTALNOPKG" value="{header>/TOTALNOPKG}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/REFDOCNO}">
+                                    <form:fields>
+                                        <Input id="delvHdrREFDOCNO" value="{header>/REFDOCNO}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/REFDOCDT}">
+                                    <form:fields>
+                                        <DatePicker
+                                            id="delvHdrREFDOCDT"
+                                            value="{header>/REFDOCDT}"
+                                            placeholder="Enter Date"
+                                            displayFormat="MM/dd/yyyy"
+                                            valueFormat="MM/dd/yyyy"
+                                            editable="false" />                                     
+                                        <!-- <Input id="delvHdrREFDOCDT" value="{header>/REFDOCDT}" editable="false" /> -->
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/REVNO}">
+                                    <form:fields>
+                                        <Input id="delvHdrREVNO" value="{header>/REVNO}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/STATUS}">
+                                    <form:fields>
+                                        <Input id="delvHdrSTATUS" 
+                                            value="{ 
+                                                parts: [{ path: 'header>/STATUS' }, { value: 'STATUS' }],
+                                                formatter: '.formatValueHelp'
+                                            }"                                         
+                                            editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                            </form:formElements>
+                        </form:FormContainer>
+                        <form:FormContainer ariaLabelledBy="Grp4" class="sapUiNoContentPadding">
+                            <form:formElements>
+                                <form:FormElement label="{ddtext>/CREATEDBY}">
+                                    <form:fields>
+                                        <Input id="delvHdrCREATEDBY" value="{header>/CREATEDBY}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/CREATEDDT}">
+                                    <form:fields>
+                                        <Input id="delvHdrCREATEDDT" value="{header>/CREATEDDT}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/UPDATEDBY}">
+                                    <form:fields>
+                                        <Input id="delvHdrUPDATEDBY" value="{header>/UPDATEDBY}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/UPDATEDDT}">
+                                    <form:fields>
+                                        <Input id="delvHdrUPDATEDDT" value="{header>/UPDATEDDT}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/DELETED}">
+                                    <form:fields>
+                                        <CheckBox id="delvHdrDELETED" selected="{header>/DELETED}" editable="false" /> 
+                                    </form:fields>
+                                </form:FormElement>
+                                <form:FormElement label="{ddtext>/REMARKS}">
+                                    <form:fields>
+                                        <TextArea id="delvHdrREMARKS" value="{header>/REMARKS}" editable="false" />
+                                    </form:fields>
+                                </form:FormElement>
+                            </form:formElements>
+                        </form:FormContainer>                            
+                    </form:formContainers>
+                </form:Form>
+                <layoutData>
+                    <FlexItemData baseSize="0%" />
+                </layoutData>
+            </Panel>
+
+            <IconTabBar id="itbDetail"
+                expanded="{device>/isNoPhone}" 
+                expandable="false"
+                select="onSelectTab"
+                stretchContentHeight="true" 
+                applyContentPadding="false">
+                <items>
+                    <IconTabFilter text="Delivery Schedule" key="delvsched">
+                        <uiT:Table id="delvSchedTab"
+                            class="sapUiTinyMarginBottom sapUiTinyMarginBegin sapUiTinyMarginEnd"
+                            visibleRowCountMode="Auto"
+                            showColumnVisibilityMenu="true"
+                            enableColumnFreeze="true"
+                            selectionMode="MultiToggle"
+                            firstVisibleRowChanged="onFirstVisibleRowChanged"
+                            cellClick="onCellClick"
+                            sort="onSort"
+                            filter="onFilter"
+                            columnFreeze="onColumnUpdated"
+                            columnMove="onColumnUpdated"
+                            columnResize="onColumnUpdated"
+                            columnSelect="onColumnUpdated"
+                            columnVisibility="onColumnUpdated">
+                            <uiT:extension>
+                                <Toolbar>
+                                    <ToolbarSpacer/>
+                                    <Button id="btnAddDelvSched" 
+                                        text="{ddtext>/ADD}"
+                                        icon="sap-icon://add"
+                                        press="onCreate"
+                                        tooltip="{ddtext>/ADD}"
+                                        visible="true"/>
+                                    <Button id="btnDeleteDelvSched" 
+                                        text="{ddtext>/DELETE}"
+                                        icon="sap-icon://delete"
+                                        press="onDelete"
+                                        tooltip="{ddtext>/DELETE}"
+                                        visible="true"/>
+                                    <Button id="btnCompleteDelvSched" 
+                                        text="{ddtext>/COMPLETE}"
+                                        icon="sap-icon://complete"
+                                        press="onComplete"
+                                        tooltip="{ddtext>/COMPLETE}"
+                                        visible="true"/> 
+                                    <Button id="btnRefreshDelvSched" 
+                                        text="{ddtext>/REFRESH}"
+                                        icon="sap-icon://refresh"
+                                        press="onRefresh"
+                                        tooltip="{ddtext>/REFRESH}"
+                                        visible="true"/>
+                                    <Button id="btnAddNewDelvSched" 
+                                        text="{ddtext>/ADD}"
+                                        icon="sap-icon://add"
+                                        press="onAddNewRow" 
+                                        tooltip="{ddtext>/ADD}"
+                                        visible="false"/>
+                                    <Button id="btnRemoveNewDelvSched" 
+                                        text="{ddtext>/REMOVE}"
+                                        icon="sap-icon://sys-minus"
+                                        press="onRemoveNewRow" 
+                                        tooltip="{ddtext>/REMOVE}"
+                                        visible="false"/>
+                                    <Button id="btnSavedDelvSched" 
+                                        text="{ddtext>/SAVE}"
+                                        icon="sap-icon://save"
+                                        press="onSave"
+                                        tooltip="{ddtext>/SAVE}"
+                                        visible="false"/>
+                                    <Button id="btnCancelDelvSched" 
+                                        text="{ddtext>/CANCEL}"
+                                        icon="sap-icon://sys-cancel"
+                                        press="onCancel"
+                                        tooltip="{ddtext>/CANCEL}"
+                                        visible="false"/> 
+                                    <Button id="btnFullScreenDelvSched" 
+                                        icon="sap-icon://full-screen"
+                                        press="onTableResize"
+                                        tooltip="{ddtext>/FULLSCREEN}"
+                                        visible="true" />
+                                    <Button id="btnExitFullScreenDelvSched" 
+                                        icon="sap-icon://exit-full-screen"
+                                        press="onTableResize"
+                                        tooltip="{ddtext>/EXITFULLSCREEN}"
+                                        visible="false" /> 
+                                </Toolbar>
+                            </uiT:extension> 
+                        </uiT:Table>
+                    </IconTabFilter>
+                    <IconTabFilter text="Shipping Details" key="shipdtl">
+                        <Panel id="shipDtlForm" height="100%" class="sapUiNoContentPadding">
+                            <Toolbar class="sapUiTinyMarginBeginEnd">
+                                <ToolbarSpacer/>
+                                <Button id="btnEditShipDtl" 
+                                    text="{ddtext>/EDIT}"
+                                    icon="sap-icon://edit"
+                                    press="onEdit"
+                                    tooltip="{ddtext>/EDIT}"
+                                    visible="true"/>
+                                <Button id="btnSaveShipDtl" 
+                                    text="{ddtext>/SAVE}"
+                                    icon="sap-icon://save"
+                                    press="onSave"
+                                    tooltip="{ddtext>/SAVE}"
+                                    visible="false"/>
+                                <Button id="btnCancelShipDtl" 
+                                    text="{ddtext>/CANCEL}"
+                                    icon="sap-icon://sys-cancel"
+                                    press="onCancel"
+                                    tooltip="{ddtext>/CANCEL}"
+                                    visible="false"/>
+                            </Toolbar>
+
+                            <form:Form editable="true" class="sapUiNoContentPadding">
+                                <form:layout>
+                                    <form:ResponsiveGridLayout
+                                        labelSpanXL="4"
+                                        labelSpanL="4"
+                                        labelSpanM="4"
+                                        labelSpanS="12"
+                                        adjustLabelSpan="false"
+                                        emptySpanXL="0"
+                                        emptySpanL="0"
+                                        emptySpanM="0"
+                                        emptySpanS="0"
+                                        columnsXL="4"
+                                        columnsL="2"
+                                        columnsM="1" 
+                                        singleContainerFullSize="false" />
+                                </form:layout>
+                                <form:formContainers>
+                                    <form:FormContainer ariaLabelledBy="Grp1" class="sapUiNoContentPadding">
+                                        <form:formElements>
+                                            <form:FormElement label="{ddtext>/VESSEL}">
+                                                <form:fields>
+                                                    <Input id="shipDtlVESSEL" value="{header>/VESSEL}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/VOYAGE}">
+                                                <form:fields>
+                                                    <Input id="shipDtlVOYAGE" value="{header>/VOYAGE}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/CARRIER}">
+                                                <form:fields>
+                                                    <Input id="shipDtlCARRIER" value="{header>/CARRIER}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/FORWRDR}">
+                                                <form:fields>
+                                                    <Input id="shipDtlFORWRDR" value="{header>/FORWRDR}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/FORREFNO}">
+                                                <form:fields>
+                                                    <Input id="shipDtlFORREFNO" value="{header>/FORREFNO}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/BOOKINGNO}">
+                                                <form:fields>
+                                                    <Input id="shipDtlBOOKINGNO" value="{header>/BOOKINGNO}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/PORTLD}">
+                                                <form:fields>
+                                                    <Input id="shipDtlPORTLD" value="{header>/PORTLD}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/PORTDIS}">
+                                                <form:fields>
+                                                    <Input id="shipDtlPORTDIS" value="{header>/PORTDIS}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/ETD}">
+                                                <form:fields>
+                                                    <DatePicker
+                                                        id="shipDtlETD"
+                                                        value="{header>/ETD}"
+                                                        placeholder="Enter Date"
+                                                        displayFormat="MM/dd/yyyy"
+                                                        valueFormat="MM/dd/yyyy"
+                                                        editable="false" />                                                 
+                                                    <!-- <Input id="shipDtlETD" value="{header>/ETD}" editable="false" /> -->
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/ETA}">
+                                                <form:fields>
+                                                    <DatePicker
+                                                        id="shipDtlETA"
+                                                        value="{header>/ETA}"
+                                                        placeholder="Enter Date"
+                                                        displayFormat="MM/dd/yyyy"
+                                                        valueFormat="MM/dd/yyyy"
+                                                        editable="false" />  
+                                                    <!-- <Input id="shipDtlETA" value="{header>/ETA}" editable="false" /> -->
+                                                </form:fields>
+                                            </form:FormElement>
+                                        </form:formElements>
+                                    </form:FormContainer>
+                                    <form:FormContainer ariaLabelledBy="Grp2" class="sapUiNoContentPadding">
+                                        <form:formElements>
+                                            <form:FormElement label="{ddtext>/HBL}">
+                                                <form:fields>
+                                                    <Input id="shipDtlHBL" value="{header>/HBL}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/HBLDT}">
+                                                <form:fields>
+                                                    <DatePicker
+                                                        id="shipDtlHBLDT"
+                                                        value="{header>/HBLDT}"
+                                                        placeholder="Enter Date"
+                                                        displayFormat="MM/dd/yyyy"
+                                                        valueFormat="MM/dd/yyyy"
+                                                        editable="false" />                                                 
+                                                    <!-- <Input id="shipDtlHBLDT" value="{header>/HBLDT}" editable="false" /> -->
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/MBL}">
+                                                <form:fields>
+                                                    <Input id="shipDtlMBL" value="{header>/MBL}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/MBLDT}">
+                                                <form:fields>
+                                                    <DatePicker
+                                                        id="shipDtlMBLDT"
+                                                        value="{header>/MBLDT}"
+                                                        placeholder="Enter Date"
+                                                        displayFormat="MM/dd/yyyy"
+                                                        valueFormat="MM/dd/yyyy"
+                                                        editable="false" />                                                 
+                                                    <!-- <Input id="shipDtlMBLDT" value="{header>/MBLDT}" editable="false" /> -->
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/CONSIGN}">
+                                                <form:fields>
+                                                    <Input id="shipDtlCONSIGN" value="{header>/CONSIGN}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/MESSRS}">
+                                                <form:fields>
+                                                    <Input id="shipDtlMESSRS" value="{header>/MESSRS}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/INVPRE}">
+                                                <form:fields>
+                                                    <Input id="shipDtlINVPRE" value="{header>/INVPRE}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/INVNO}">
+                                                <form:fields>
+                                                    <Input id="shipDtlINVNO" value="{header>/INVNO}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/INVSUF}">
+                                                <form:fields>
+                                                    <Input id="shipDtlINVSUF" value="{header>/INVSUF}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/INVDT}">
+                                                <form:fields>
+                                                    <DatePicker
+                                                        id="shipDtlINVDT"
+                                                        value="{header>/INVDT}"
+                                                        placeholder="Enter Date"
+                                                        displayFormat="MM/dd/yyyy"
+                                                        valueFormat="MM/dd/yyyy"
+                                                        editable="false" />                                                 
+                                                    <!-- <Input id="shipDtlINVDT" value="{header>/INVDT}" editable="false" /> -->
+                                                </form:fields>
+                                            </form:FormElement>
+                                        </form:formElements>
+                                    </form:FormContainer>
+                                    <form:FormContainer ariaLabelledBy="Grp3" class="sapUiNoContentPadding">
+                                        <form:formElements>
+                                            <form:FormElement label="{ddtext>/ACCTTYP}">
+                                                <form:fields>
+                                                    <Input id="shipDtlACCTTYP" value="{header>/ACCTTYP}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/IMPTR}">
+                                                <form:fields>
+                                                    <Input id="shipDtlIMPTR" value="{header>/IMPTR}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/EXPTR}">
+                                                <form:fields>
+                                                    <Input id="shipDtlEXPTR" value="{header>/EXPTR}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/FINLDEST}">
+                                                <form:fields>
+                                                    <Input id="shipDtlFINLDEST" value="{header>/FINLDEST}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/CONTTYP}">
+                                                <form:fields>
+                                                    <Input id="shipDtlCONTTYP" value="{header>/CONTTYP}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/CONTNO}">
+                                                <form:fields>
+                                                    <Input id="shipDtlCONTNO" value="{header>/CONTNO}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/SEALNO}">
+                                                <form:fields>
+                                                    <Input id="shipDtlSEALNO" value="{header>/SEALNO}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/GRSWT}">
+                                                <form:fields>
+                                                    <Input id="shipDtlGRSWT" value="{header>/GRSWT}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/NETWT}">
+                                                <form:fields>
+                                                    <Input id="shipDtlNETWT" value="{header>/NETWT}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/WTUOM}">
+                                                <form:fields>
+                                                    <!-- <Input id="shipDtlWTUOM" value="{header>/WTUOM}" editable="false" /> -->
+                                                    <Input id="shipDtlWTUOM"
+                                                        type="Text" 
+                                                        value="{header>/WTUOM}" 
+                                                        showValueHelp="true"
+                                                        valueHelpRequest="handleValueHelp" 
+                                                        showSuggestion="true" 
+                                                        suggestionItems="{path: 'wtuom>/', length: 10000, templateShareable: false}" 
+                                                        change="onValueHelpInputChange"
+                                                        editable="false">
+                                                        <suggestionItems>
+                                                            <core:ListItem key="{wtuom>UOM}" text="{wtuom>UOM}" additionalText="{wtuom>DESCRIPTION}" />
+                                                        </suggestionItems>
+                                                    </Input>                                                    
+                                                </form:fields>
+                                            </form:FormElement>
+                                        </form:formElements>
+                                    </form:FormContainer>
+                                    <form:FormContainer ariaLabelledBy="Grp4" class="sapUiNoContentPadding">
+                                        <form:formElements>
+                                            <form:FormElement label="{ddtext>/VOLUME}">
+                                                <form:fields>
+                                                    <Input id="shipDtlVOLUME" value="{header>/VOLUME}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/VOLUOM}">
+                                                <form:fields>
+                                                    <!-- <Input id="shipDtlVOLUOM" value="{header>/VOLUOM}" editable="false" /> -->
+                                                    <Input id="shipDtlVOLUOM"
+                                                        type="Text" 
+                                                        value="{header>/VOLUOM}" 
+                                                        showValueHelp="true"
+                                                        valueHelpRequest="handleValueHelp" 
+                                                        showSuggestion="true" 
+                                                        suggestionItems="{path: 'voluom>/', length: 10000, templateShareable: false}" 
+                                                        change="onValueHelpInputChange"
+                                                        editable="false">
+                                                        <suggestionItems>
+                                                            <core:ListItem key="{voluom>UOM}" text="{voluom>UOM}" additionalText="{voluom>DESCRIPTION}" />
+                                                        </suggestionItems>
+                                                    </Input> 
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/NP1}">
+                                                <form:fields>
+                                                    <Input id="shipDtlNP1" value="{header>/NP1}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/NP2}">
+                                                <form:fields>
+                                                    <Input id="shipDtlNP2" value="{header>/NP2}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/NP3}">
+                                                <form:fields>
+                                                    <Input id="shipDtlNP3" value="{header>/NP3}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/NP4}">
+                                                <form:fields>
+                                                    <Input id="shipDtlNP4" value="{header>/NP4}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/EXPLICNO}">
+                                                <form:fields>
+                                                    <Input id="shipDtlEXPLICNO" value="{header>/EXPLICNO}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/EXPLICDT}">
+                                                <form:fields>
+                                                    <DatePicker
+                                                        id="shipDtlEXPLICDT"
+                                                        value="{header>/EXPLICDT}"
+                                                        placeholder="Enter Date"
+                                                        displayFormat="MM/dd/yyyy"
+                                                        valueFormat="MM/dd/yyyy"
+                                                        editable="false" />                                                 
+                                                    <!-- <Input id="shipDtlEXPLICDT" value="{header>/EXPLICDT}" editable="false" /> -->
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/INSPOL}">
+                                                <form:fields>
+                                                    <Input id="shipDtlINSPOL" value="{header>/INSPOL}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                            <form:FormElement label="{ddtext>/TCINVNO}">
+                                                <form:fields>
+                                                    <Input id="shipDtlTCINVNO" value="{header>/TCINVNO}" editable="false" />
+                                                </form:fields>
+                                            </form:FormElement>
+                                        </form:formElements>
+                                    </form:FormContainer>                            
+                                </form:formContainers>
+                            </form:Form>
+                        </Panel>
+                    </IconTabFilter>
+                    <IconTabFilter text="Delivery Details" key="delvdtl">
+                        <uiT:Table id="delvDtlTab"
+                            class="sapUiTinyMarginBottom sapUiTinyMarginBegin sapUiTinyMarginEnd"
+                            visibleRowCountMode="Auto"
+                            showColumnVisibilityMenu="true"
+                            enableColumnFreeze="true"
+                            selectionMode="None"
+                            firstVisibleRowChanged="onFirstVisibleRowChanged"
+                            cellClick="onCellClick"
+                            sort="onSort"
+                            filter="onFilter"
+                            columnFreeze="onColumnUpdated"
+                            columnMove="onColumnUpdated"
+                            columnResize="onColumnUpdated"
+                            columnSelect="onColumnUpdated"
+                            columnVisibility="onColumnUpdated">
+                        </uiT:Table>
+                    </IconTabFilter>
+                    <IconTabFilter text="Status" key="status">
+                        <uiT:Table id="delvStatTab"
+                            class="sapUiTinyMarginBottom sapUiTinyMarginBegin sapUiTinyMarginEnd"
+                            visibleRowCountMode="Auto"
+                            showColumnVisibilityMenu="true"
+                            enableColumnFreeze="true"
+                            selectionMode="None"
+                            firstVisibleRowChanged="onFirstVisibleRowChanged"
+                            cellClick="onCellClick"
+                            sort="onSort"
+                            filter="onFilter"
+                            columnFreeze="onColumnUpdated"
+                            columnMove="onColumnUpdated"
+                            columnResize="onColumnUpdated"
+                            columnSelect="onColumnUpdated"
+                            columnVisibility="onColumnUpdated">
+                        </uiT:Table>
+                    </IconTabFilter>
+                </items>
+                <layoutData>
+                    <FlexItemData growFactor="1" baseSize="0%"/>
+                </layoutData>
+            </IconTabBar>
+        </VBox>
+    </Page>
+</mvc:View>
