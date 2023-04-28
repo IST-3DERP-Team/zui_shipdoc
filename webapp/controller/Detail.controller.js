@@ -5,9 +5,10 @@ sap.ui.define([
     "sap/ui/core/routing/History",
     "sap/m/MessageToast",
     "../js/Common",
+    "../js/TableValueHelp",
 ],
 
-function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
+function (Controller, JSONModel, MessageBox, History, MessageToast, Common, TableValueHelp) {
 
     var me;
     var dateFormat = sap.ui.core.format.DateFormat.getDateInstance({pattern : "MM/dd/yyyy" });
@@ -19,6 +20,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             me = this;
             this._oModel = this.getOwnerComponent().getModel();
             this._oModelCommon = this.getOwnerComponent().getModel("ZGW_3DERP_COMMON_SRV");               
+            this._tableValueHelp = TableValueHelp;
 
             const route = this.getOwnerComponent().getRouter().getRoute("RouteDetail");
             route.attachPatternMatched(this.onPatternMatched, this);
@@ -33,13 +35,22 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             this._oDataBeforeChange = {};
             this._sActiveTable = "";
             this._validationErrors = [];
+            this._aColFilters = [];
+            this._aColSorters = [];
             this._dataMode = this.getOwnerComponent().getModel("UI_MODEL").getData().action;
             // this.getView().setModel(new JSONModel(this._oBlankHeaderData), "header");
-            
+            // console.log(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData())
             //set initial list of ship mode and status
-            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("SHIPMODE_MODEL").getData().rows), "shipmode");
-            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("STATUS_MODEL").getData().rows), "status");
-            
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().shipmode), "shipmode");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().status), "status");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().issplant), "issplant");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().shiptocust), "shiptocust");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().salesterm), "salesterm");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().wtuom), "wtuom");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().voluom), "voluom");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().dest), "dest");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().consign), "consign");
+
             //update list of ship mode
             this._oModel.read("/ShipModeSHSet", {
                 success: function (oData, oResponse) {
@@ -60,40 +71,52 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
 
             this._oModel.read("/IssPlantSHSet", {
                 success: function (oData, oResponse) {
-                    me.getView().setModel(new JSONModel(oData.results), "issplant");
+                    me.getView().getModel("issplant").setProperty("/", oData.results);
+                    // me.getView().setModel(new JSONModel(oData.results), "issplant");
                 },
                 error: function (err) { }
             });
 
             this._oModel.read("/ShipToCustSHSet", {
                 success: function (oData, oResponse) {
-                    me.getView().setModel(new JSONModel(oData.results), "shiptocust");
+                    me.getView().getModel("shiptocust").setProperty("/", oData.results);
+                    // me.getView().setModel(new JSONModel(oData.results), "shiptocust");
                 },
                 error: function (err) { }
             });
 
             this._oModel.read("/SalesTermSHSet", {
                 success: function (oData, oResponse) {
-                    me.getView().setModel(new JSONModel(oData.results), "salesterm");
+                    me.getView().getModel("salesterm").setProperty("/", oData.results);
+                    // me.getView().setModel(new JSONModel(oData.results), "salesterm");
                 },
                 error: function (err) { }
             });
 
             this._oModel.read("/WtUOMSHSet", {
                 success: function (oData, oResponse) {
-                    me.getView().setModel(new JSONModel(oData.results), "wtuom");
+                    me.getView().getModel("wtuom").setProperty("/", oData.results);
+                    // me.getView().setModel(new JSONModel(oData.results), "wtuom");
                 },
                 error: function (err) { }
             });
 
             this._oModel.read("/VolUOMSHSet", {
                 success: function (oData, oResponse) {
-                    me.getView().setModel(new JSONModel(oData.results), "voluom");
+                    me.getView().getModel("voluom").setProperty("/", oData.results);
+                    // me.getView().setModel(new JSONModel(oData.results), "voluom");
                 },
                 error: function (err) { }
             });
 
-            // this.getColumnProp();
+            this._oModel.read("/DestSHSet", {
+                success: function (oData, oResponse) {
+                    me.getView().getModel("dest").setProperty("/", oData.results);
+                    // me.getView().setModel(new JSONModel(oData.results), "dest");
+                },
+                error: function (err) { }
+            });
+
             this.getDynamicColumns("SHPDOCDLVSCHD", "Z3DERP_SHPDCDLVS", "delvSchedTab");
 
             setTimeout(() => {
@@ -102,6 +125,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
 
             setTimeout(() => {
                 me.getDynamicColumns("SHPDOCDLVSTAT", "ZERP_DLVSTAT", "delvStatTab");
+            }, 100);
+
+            setTimeout(() => {
+                me.getDynamicColumns("SHPDOCHDR", "Z3DERP_SHPDCDLVH", "");
             }, 100);
 
             // if (sap.ui.getCore().byId("backBtn") !== undefined) {
@@ -140,6 +167,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                         ISSPLNT: "",
                         SOLDTOCUST: "",
                         BILLTOCUST: "",
+                        CUSTGRP: "",
                         SALESTERM: "",
                         SALESTERMTEXT: "",
                         DOCDT: "",
@@ -201,10 +229,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 }
 
                 this.getView().byId("btnEditHdr").setVisible(false);
+                this.getView().byId("btnRefreshHdr").setVisible(false);
                 this.getView().byId("btnSaveHdr").setVisible(true);
                 this.getView().byId("btnCancelHdr").setVisible(true);
 
-                this.getView().byId("btnEditShipDtl").setEnabled(false);            
+                this.getView().byId("btnEditShipDtl").setEnabled(false);
+                this.getView().byId("btnRefreshShipDtl").setEnabled(false);
 
                 var oIconTabBar = this.byId("itbDetail");
                 oIconTabBar.getItems().forEach(item => item.setProperty("enabled", false));
@@ -214,11 +244,15 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             else if (this._dataMode === "READ") {
                 this.getView().byId("btnEditHdr").setEnabled(true);
                 this.getView().byId("btnEditHdr").setVisible(true);
+                this.getView().byId("btnRefreshHdr").setEnabled(true);
+                this.getView().byId("btnRefreshHdr").setVisible(true);
                 this.getView().byId("btnSaveHdr").setVisible(false);
                 this.getView().byId("btnCancelHdr").setVisible(false);
     
                 this.getView().byId("btnEditShipDtl").setEnabled(true);
                 this.getView().byId("btnEditShipDtl").setVisible(true);
+                this.getView().byId("btnRefreshShipDtl").setEnabled(true);
+                this.getView().byId("btnRefreshShipDtl").setVisible(true);
                 this.getView().byId("btnAddDelvSched").setEnabled(true);
                 this.getView().byId("btnAddDelvSched").setVisible(true);
                 this.getView().byId("btnDeleteDelvSched").setEnabled(true);
@@ -256,6 +290,25 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             
             this.getView().setModel(new JSONModel(oHeaderData), "header");
             this._oDataBeforeChange = jQuery.extend(true, {}, oHeaderData);
+
+            this._oModel.read("/ConsignSHSet", {
+                urlParameters: {
+                    "$filter": "CUSTGRP eq '" + oHeaderData.CUSTGRP + "'"
+                },
+                success: function (oData, oResponse) {
+                    me.getView().getModel("consign").setProperty("/", oData.results);
+                    // me.getView().setModel(new JSONModel(oData.results), "consign");
+                },
+                error: function (err) { }
+            });
+
+            this.getView().setModel(new JSONModel({
+                fullscreen: false
+            }), "ui");
+
+            // setTimeout(() => {
+                me.getColumnProp();
+            // }, 1000);
         },
 
         onNavBack: function(oEvent) {
@@ -269,13 +322,13 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
         },
 
         getColumnProp: async function() {
-            var sPath = jQuery.sap.getModulePath("zuiaprocess", "/model/columns.json");
+            var sPath = jQuery.sap.getModulePath("zuishipdoc", "/model/columns.json");
 
             var oModelColumns = new JSONModel();
             await oModelColumns.loadData(sPath);
-
-            this._aColumns = oModelColumns.getData();
-            this.setRowEditMode("detail");
+            // this._aColumns = oModelColumns.getData();
+            this._oModelColumns = oModelColumns.getData();
+            // this.setRowEditMode("detail");
         },
 
         getDynamicColumns(arg1, arg2, arg3) {
@@ -292,14 +345,20 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
 
             this._oModelCommon.read("/ColumnsSet", {
                 success: function (oData) {
-                    if (oData.results.length > 0) {
-                        me._aColumns[sTabId.replace("Tab", "")] = oData.results;
-                        me.setTableColumns(sTabId, oData.results);  
+                    if (sTabId === "") {
+                        // me._aColumns["delvHdr"] = oData.results;
+                        me.formatFormInput(oData.results);
                     }
                     else {
-                        var oTable = me.byId(sTabId);
-                        if (oTable.getColumns().length > 0) {
-                            oTable.getModel().setProperty("/columns", []);
+                        if (oData.results.length > 0) {
+                            me._aColumns[sTabId.replace("Tab", "")] = oData.results;
+                            me.setTableColumns(sTabId, oData.results);  
+                        }
+                        else {
+                            var oTable = me.byId(sTabId);
+                            if (oTable.getColumns().length > 0) {
+                                oTable.getModel().setProperty("/columns", []);
+                            }
                         }
                     }
                 },
@@ -346,8 +405,115 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             });
         },
 
+        getHeaderData() {
+            Common.openProcessingDialog(this);
+
+            this._oModel.read('/HeaderSet', {
+                urlParameters: {
+                    "$filter": "DLVNO eq '" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "'"
+                },
+                success: function (oData) {
+                    oData.results.forEach((item, index) => {  
+                        if (!(item.DOCDT === null || item.DOCDT === ""))
+                        { item.DOCDT = dateFormat.format(new Date(item.DOCDT)); }
+
+                        if (!(item.POSTDT === null || item.POSTDT === ""))
+                        { item.POSTDT = dateFormat.format(new Date(item.POSTDT)); }
+
+                        if (!(item.PLANDLVDT === null || item.PLANDLVDT === ""))
+                        { item.PLANDLVDT = dateFormat.format(new Date(item.PLANDLVDT)); }
+
+                        if (!(item.INDCDT === null || item.INDCDT === ""))
+                        { item.INDCDT = dateFormat.format(new Date(item.INDCDT)); }
+
+                        if (!(item.EXFTYDT === null || item.EXFTYDT === ""))
+                        { item.EXFTYDT = dateFormat.format(new Date(item.EXFTYDT)); }
+
+                        if (!(item.DEPARTDT === null || item.DEPARTDT === ""))
+                        { item.DEPARTDT = dateFormat.format(new Date(item.DEPARTDT)); }
+
+                        if (!(item.REFDOCDT === null || item.REFDOCDT === ""))
+                        { item.REFDOCDT = dateFormat.format(new Date(item.REFDOCDT)); }
+
+                        if (!(item.CREATEDDT === null || item.CREATEDDT === ""))
+                        {item.CREATEDDT = dateFormat.format(new Date(item.CREATEDDT)); }
+
+                        if (!(item.UPDATEDDT === null || item.UPDATEDDT === ""))
+                        { item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT)); }
+
+                        if (!(item.DELETED === null || item.DELETED === ""))
+                        { item.DELETED = true; }
+                        else { item.DELETED = false; }
+
+                        if (!(item.MULTISOLDTO === null || item.MULTISOLDTO === ""))
+                        { item.MULTISOLDTO = true; }
+                        else { item.MULTISOLDTO = false; }
+
+                        if (index === 0) {
+                            item.ACTIVE = "X";
+                            me.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv", item.DLVNO);
+                        }
+                        else { item.ACTIVE = ""; }
+                    });
+                    console.log(oData.results[0])
+                    me.getView().getModel("header").setProperty("/", oData.results[0]);
+                    me._oDataBeforeChange = jQuery.extend(true, {}, oData.results[0]);
+                    Common.closeProcessingDialog(me);
+                },
+                error: function (err) { 
+                    Common.closeProcessingDialog(me);
+                }
+            })
+        },
+
+        getDelvSchedData() {
+            Common.openProcessingDialog(me, "Processing...");
+
+            this._oModel.read('/DelvSchedSet', {
+                urlParameters: {
+                    "$filter": "DLVNO eq '" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "'"
+                },
+                success: function (oData) {
+                    if (oData.results.length > 0) {
+                        oData.results.forEach((item, index) => {  
+                            if (item.CREATEDDT !== null)
+                                item.CREATEDDT = dateFormat.format(new Date(item.CREATEDDT));
+
+                            if (item.UPDATEDDT !== null)
+                                item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT));
+
+                            if (item.CPODT !== "") item.CPODT = dateFormat.format(item.CPODT);
+                            if (item.DLVDT !== "") item.DLVDT = dateFormat.format(item.DLVDT);
+                            if (item.REVDLVDT !== "") item.REVDLVDT = dateFormat.format(item.REVDLVDT);
+                            
+                            item.CPOITEM = item.CPOITEM + "";
+                            item.CPOREV = item.CPOREV + "";
+                            item.DLVSEQ = item.DLVSEQ + "";
+                            item.ROWINDEX = index;
+
+                            if (index === 0) item.ACTIVE = "X";
+                            else item.ACTIVE = "";
+                        });
+                    }
+
+                    me.byId("delvSchedTab").getModel().setProperty("/rows", oData.results);
+                    me.byId("delvSchedTab").bindRows("/rows");
+                    me.setActiveRowHighlightByTableId("delvSchedTab");
+
+                    if (me._aColFilters.length > 0) { me.setColumnFilters("delvSchedTab"); }
+                    if (me._aColSorters.length > 0) { me.setColumnSorters("delvSchedTab"); }
+
+                    Common.closeProcessingDialog(me);
+                },
+                error: function (err) {
+                    Common.closeProcessingDialog(me);
+                }
+            })
+        },
+
         getDelvDetailData() {
-            // console.log(this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv)
+            Common.openProcessingDialog(this);
+
             this._oModel.read('/DelvDetailSet', {
                 urlParameters: {
                     "$filter": "DLVNO eq '" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "'"
@@ -365,6 +531,11 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
 
                     me.byId("delvDtlTab").getModel().setProperty("/rows", oData.results);
                     me.byId("delvDtlTab").bindRows("/rows");
+
+                    if (me._aColFilters.length > 0) { me.setColumnFilters("delvDtlTab"); }
+                    if (me._aColSorters.length > 0) { me.setColumnSorters("delvDtlTab"); }
+
+                    Common.closeProcessingDialog(me);
                 },
                 error: function (err) { 
                     Common.closeProcessingDialog(me);
@@ -373,6 +544,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
         },
 
         getDelvStatusData() {
+            Common.openProcessingDialog(this);
+
             this._oModel.read('/StatusSet', {
                 urlParameters: {
                     "$filter": "DLVNO eq '" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "'"
@@ -389,9 +562,14 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                             else { item.ACTIVE = ""; }
                         });
                     }
-                    // console.log(oData.results)
+
                     me.byId("delvStatTab").getModel().setProperty("/rows", oData.results);
                     me.byId("delvStatTab").bindRows("/rows");
+
+                    if (me._aColFilters.length > 0) { me.setColumnFilters("delvStatTab"); }
+                    if (me._aColSorters.length > 0) { me.setColumnSorters("delvStatTab"); }
+
+                    Common.closeProcessingDialog(me);
                 },
                 error: function (err) { 
                     Common.closeProcessingDialog(me);
@@ -411,15 +589,18 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 this.byId("delvSchedTab").getModel().setProperty("/rows", []);
                 this.byId("delvSchedTab").bindRows("/rows");
 
+                var vMultiSoldTo = this.getView().byId("delvHdrMULTISOLDTO").getSelected();
+                var vSoldToCust = vMultiSoldTo ? "MULTIXYZ" : this.getView().byId("delvHdrSOLDTOCUST").getValue();
+
                 this._oModel.setHeaders({
                     plant: this.getView().byId("delvHdrISSPLNT").getValue(),
-                    custcd: this.getView().byId("delvHdrSOLDTOCUST").getValue()
+                    custcd: vSoldToCust
                 })
-
+                console.log(vSoldToCust)
                 this._oModel.read('/IODelvSet', {
                     success: function (oData) {                           
                         Common.closeProcessingDialog(me);
-                        
+                        console.log(oData)
                         oData.results.forEach((item, index) => {
                             if (item.CPODT !== "") item.CPODT = dateFormat.format(item.CPODT);
                             if (item.DLVDT !== "") item.DLVDT = dateFormat.format(item.DLVDT);
@@ -490,6 +671,14 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 var oIconTabBar = this.byId("itbDetail");
                 oIconTabBar.getItems().filter(item => item.getProperty("key") !== oIconTabBar.getSelectedKey())
                     .forEach(item => item.setProperty("enabled", false));  
+
+                if (this.byId("delvSchedTab").getBinding("rows").aFilters.length > 0) {
+                    this._aColFilters = this.byId("delvSchedTab").getBinding("rows").aFilters;
+                }
+
+                if (this.byId("delvSchedTab").getBinding("rows").aSorters.length > 0) {
+                    this._aColSorters = this.byId("delvSchedTab").getBinding("rows").aSorters;
+                }
             }
 
             // this._dataMode = "NEW";
@@ -516,14 +705,16 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 this.setHeaderFieldsEditable(true);
 
                 this.getView().byId("btnEditHdr").setVisible(false);
+                this.getView().byId("btnRefreshHdr").setVisible(false);
                 this.getView().byId("btnSaveHdr").setVisible(true);
                 this.getView().byId("btnCancelHdr").setVisible(true);
 
-                this.getView().byId("btnEditShipDtl").setEnabled(false);
-                this.getView().byId("btnAddDelvSched").setEnabled(false);
-                this.getView().byId("btnDeleteDelvSched").setEnabled(false);
-                this.getView().byId("btnCompleteDelvSched").setEnabled(false);
-                this.getView().byId("btnRefreshDelvSched").setEnabled(false);                
+                // this.getView().byId("btnEditShipDtl").setEnabled(false);
+                // this.getView().byId("btnRefreshShipDtl").setEnabled(false);
+                // this.getView().byId("btnAddDelvSched").setEnabled(false);
+                // this.getView().byId("btnDeleteDelvSched").setEnabled(false);
+                // this.getView().byId("btnCompleteDelvSched").setEnabled(false);
+                // this.getView().byId("btnRefreshDelvSched").setEnabled(false);                
 
                 var oIconTabBar = this.byId("itbDetail");
                 oIconTabBar.getItems().forEach(item => item.setProperty("enabled", false));
@@ -536,10 +727,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 this.setShipDetailFieldsEditable(true);
 
                 this.getView().byId("btnEditShipDtl").setVisible(false);
+                this.getView().byId("btnRefreshShipDtl").setVisible(false);
                 this.getView().byId("btnSaveShipDtl").setVisible(true);
-                this.getView().byId("btnCancelShipDtl").setVisible(true);
+                this.getView().byId("btnCancelShipDtl").setVisible(true);                
 
                 this.getView().byId("btnEditHdr").setEnabled(false);
+                this.getView().byId("btnRefreshHdr").setEnabled(false);
 
                 var oIconTabBar = this.byId("itbDetail");
                 oIconTabBar.getItems().filter(item => item.getProperty("key") !== oIconTabBar.getSelectedKey())
@@ -559,7 +752,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             if (obj.getId().indexOf("delvHdrForm") >= 0) {
                 oData = {
                     Process: "header-cancel",
-                    Text: this.getView().getModel("ddtext").getData()["CONFIRM_DISREGARD_CHANGE"]
+                    Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
                 }
 
                 // this.setHeaderFieldsEditable(false);
@@ -577,7 +770,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             else if (obj.getId().indexOf("shipDtlForm") >= 0) {
                 oData = {
                     Process: "shipdtl-cancel",
-                    Text: this.getView().getModel("ddtext").getData()["CONFIRM_DISREGARD_CHANGE"]
+                    Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
                 }
 
                 // this.setShipDetailFieldsEditable(false);
@@ -591,7 +784,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             else if (obj.getId().indexOf("delvSchedTab") >= 0) {
                 oData = {
                     Process: "delvsched-cancel",
-                    Text: this.getView().getModel("ddtext").getData()["CONFIRM_DISREGARD_CHANGE"]
+                    Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
                 }
 
                 // var oTable = obj;
@@ -635,10 +828,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             var obj = oEvent.getSource().oParent.oParent;
             var oParam = {};
             Common.openProcessingDialog(this);
-            console.log(this.getView().byId("delvHdrEVERS").getValue());
-            console.log(this.getView().byId("delvHdrEVERS"));
-            console.log(this.getView().byId("delvHdrEVERS").getSelectedKey());
-            console.log(this.getView().byId("delvHdrEVERS").getSelectedItem());
+            // console.log(this.getView().byId("delvHdrEVERS").getValue());
+            // console.log(this.getView().byId("delvHdrEVERS"));
+            // console.log(this.getView().byId("delvHdrEVERS").getSelectedKey());
+            // console.log(this.getView().byId("delvHdrEVERS").getSelectedItem());
             
             if (obj.getId().indexOf("delvHdrForm") >= 0) {
                 if (this._validationErrors.length > 0) {
@@ -672,7 +865,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                     oParam["REFDOCNO"] = this.getView().byId("delvHdrREFDOCNO").getValue();
                     oParam["STATUS"] = this.getView().byId("delvHdrSTATUS").getValue();
                     oParam["REMARKS"] = this.getView().byId("delvHdrREMARKS").getValue();
-                    
+                    oParam["MULTISOLDTO"] = this.getView().byId("delvHdrMULTISOLDTO").getSelected() === true ? "X" : "";
+
                     if (this.getView().byId("delvHdrPLANDLVDT").getValue() !== "") {
                         oParam["PLANDLVDT"] = sapDateFormat.format(new Date(this.getView().byId("delvHdrPLANDLVDT").getValue())) + "T00:00:00";
                     } 
@@ -698,13 +892,13 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                     }
                     else { oParam["REFDOCDT"] = null; }
     
-                    if (this.getView().byId("delvHdrTOTALNOPKG").getValue() !== "") {
-                        oParam["TOTALNOPKG"] = +this.getView().byId("delvHdrTOTALNOPKG").getValue();
+                    if (this.getView().byId("fldTOTALNOPKG").getValue() !== "") {
+                        oParam["TOTALNOPKG"] = +this.getView().byId("fldTOTALNOPKG").getValue();
                     }
                     else { oParam["TOTALNOPKG"] = null; }
     
-                    if (this.getView().byId("delvHdrREVNO").getValue() !== "") {
-                        oParam["REVNO"] = +this.getView().byId("delvHdrREVNO").getValue();
+                    if (this.getView().byId("fldREVNO").getValue() !== "") {
+                        oParam["REVNO"] = +this.getView().byId("fldREVNO").getValue();
                     }
                     else { oParam["REVNO"] = null; }
     
@@ -721,10 +915,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                                     me.setHeaderFieldsEditable(false);
         
                                     me.getView().byId("btnEditHdr").setVisible(true);
+                                    me.getView().byId("btnRefreshHdr").setVisible(true);
                                     me.getView().byId("btnSaveHdr").setVisible(false);
                                     me.getView().byId("btnCancelHdr").setVisible(false);
             
                                     me.getView().byId("btnEditShipDtl").setEnabled(true);
+                                    me.getView().byId("btnRefreshShipDtl").setEnabled(true);
                               
                                     var oIconTabBar = me.byId("itbDetail");
                                     oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
@@ -754,10 +950,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                                 me.setHeaderFieldsEditable(false);
         
                                 me.getView().byId("btnEditHdr").setVisible(true);
+                                me.getView().byId("btnRefreshHdr").setVisible(true);
                                 me.getView().byId("btnSaveHdr").setVisible(false);
                                 me.getView().byId("btnCancelHdr").setVisible(false);
         
                                 me.getView().byId("btnEditShipDtl").setEnabled(true);
+                                me.getView().byId("btnRefreshShipDtl").setEnabled(true);
                                 me.getView().byId("btnAddDelvSched").setEnabled(true);
                                 me.getView().byId("btnDeleteDelvSched").setEnabled(true);
                                 me.getView().byId("btnCompleteDelvSched").setEnabled(true);
@@ -809,10 +1007,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 oParam["CONTTYP"] = this.getView().byId("shipDtlCONTTYP").getValue();
                 oParam["CONTNO"] = this.getView().byId("shipDtlCONTNO").getValue();
                 oParam["SEALNO"] = this.getView().byId("shipDtlSEALNO").getValue();
-                oParam["GRSWT"] = this.getView().byId("shipDtlGRSWT").getValue();
-                oParam["NETWT"] = this.getView().byId("shipDtlNETWT").getValue();
+                oParam["GRSWT"] = this.getView().byId("fldGRSWT").getValue();
+                oParam["NETWT"] = this.getView().byId("fldNETWT").getValue();
                 oParam["WTUOM"] = this.getView().byId("shipDtlWTUOM").getValue();
-                oParam["VOLUME"] = this.getView().byId("shipDtlVOLUME").getValue();
+                oParam["VOLUME"] = this.getView().byId("fldVOLUME").getValue();
                 oParam["VOLUOM"] = this.getView().byId("shipDtlVOLUOM").getValue();
                 oParam["NP1"] = this.getView().byId("shipDtlNP1").getValue();
                 oParam["NP2"] = this.getView().byId("shipDtlNP2").getValue();
@@ -859,10 +1057,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                         me.setShipDetailFieldsEditable(false);
 
                         me.getView().byId("btnEditShipDtl").setVisible(true);
+                        me.getView().byId("btnRefreshShipDtl").setVisible(true);
                         me.getView().byId("btnSaveShipDtl").setVisible(false);
                         me.getView().byId("btnCancelShipDtl").setVisible(false);
         
                         me.getView().byId("btnEditHdr").setEnabled(true);
+                        me.getView().byId("btnRefreshHdr").setEnabled(true);
 
                         var oIconTabBar = me.byId("itbDetail");
                         oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
@@ -926,6 +1126,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                             me.getView().byId("btnCancelDelvSched").setVisible(false);
             
                             me.getView().byId("btnEditHdr").setEnabled(true);
+                            me.getView().byId("btnRefreshHdr").setEnabled(true);
             
                             var oIconTabBar = me.byId("itbDetail");
                             oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
@@ -952,10 +1153,27 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
         },
 
         onRefresh: function (oEvent) {
-            var oTable = oEvent.getSource().oParent.oParent;
-
-            if (oTable.getId().indexOf("delvSchedTab") >= 0) {
+            // var oTable = oEvent.getSource().oParent.oParent;
+            if (oEvent.getSource().data("TableId") === "delvHdrForm") {
+                this.getHeaderData();
+            }
+            else if (oEvent.getSource().data("TableId") === "delvSchedTab") {
                 this.getDelvSchedData();
+                this._aColFilters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aFilters;
+                this._aColSorters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aSorters;   
+            }
+            else if (oEvent.getSource().data("TableId") === "shipDtlForm") {
+                this.getHeaderData();
+            }
+            else if (oEvent.getSource().data("TableId") === "delvDtlTab") {
+                this._aColFilters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aFilters;
+                this._aColSorters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aSorters;    
+                this.getDelvDetailData();
+            }
+            else if (oEvent.getSource().data("TableId") === "delvStatTab") {
+                this._aColFilters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aFilters;
+                this._aColSorters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aSorters;    
+                this.getDelvStatusData();
             }
         },
         
@@ -1157,57 +1375,22 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
         },
 
         onTableResize: function(oEvent) {
-            if (oEvent.getSource().getId().indexOf("ExitFullScreen") >= 0) {
-                this.byId("delvHdrForm").setVisible(true);
-                this.byId("btnFullScreenDelvSched").setVisible(true);
-                this.byId("btnExitFullScreenDelvSched").setVisible(false);
-            }
-            else {
-                this.byId("delvHdrForm").setVisible(false);
-                this.byId("btnFullScreenDelvSched").setVisible(false);
-                this.byId("btnExitFullScreenDelvSched").setVisible(true);
-            }
-        },
+            var bFullScreen = oEvent.getSource().data("Max") === "1" ? true : false;
+            this.byId("delvHdrForm").setVisible(!bFullScreen);
+            this.getView().getModel("ui").setProperty("/fullscreen", bFullScreen);
 
-        getDelvSchedData() {
-            Common.openProcessingDialog(me, "Processing...");
-
-            this._oModel.read('/DelvSchedSet', {
-                urlParameters: {
-                    "$filter": "DLVNO eq '" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "'"
-                },
-                success: function (oData) {
-                    if (oData.results.length > 0) {
-                        oData.results.forEach((item, index) => {  
-                            if (item.CREATEDDT !== null)
-                                item.CREATEDDT = dateFormat.format(new Date(item.CREATEDDT));
-
-                            if (item.UPDATEDDT !== null)
-                                item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT));
-
-                            if (item.CPODT !== "") item.CPODT = dateFormat.format(item.CPODT);
-                            if (item.DLVDT !== "") item.DLVDT = dateFormat.format(item.DLVDT);
-                            if (item.REVDLVDT !== "") item.REVDLVDT = dateFormat.format(item.REVDLVDT);
-                            
-                            item.CPOITEM = item.CPOITEM + "";
-                            item.CPOREV = item.CPOREV + "";
-                            item.DLVSEQ = item.DLVSEQ + "";
-                            item.ROWINDEX = index;
-
-                            if (index === 0) item.ACTIVE = "X";
-                            else item.ACTIVE = "";
-                        });
-                    }
-
-                    me.byId("delvSchedTab").getModel().setProperty("/rows", oData.results);
-                    me.byId("delvSchedTab").bindRows("/rows");
-                    me.setActiveRowHighlightByTableId("delvSchedTab");
-                    Common.closeProcessingDialog(me);
-                },
-                error: function (err) {
-                    Common.closeProcessingDialog(me);
-                }
-            })
+            // if (oEvent.getSource().getId().indexOf("ExitFullScreen") >= 0) {
+            //     this.byId("delvHdrForm").setVisible(true);
+            //     oEvent.getSource().setVisible(true);
+            //     this.byId(oEvent.getSource().data("ExitFullScreen")).setVisible(false);
+            //     // this.byId("btnFullScreenDelvSched").setVisible(true);
+            //     // this.byId("btnExitFullScreenDelvSched").setVisible(false);
+            // }
+            // else {
+            //     this.byId("delvHdrForm").setVisible(false);
+            //     this.byId("btnFullScreenDelvSched").setVisible(false);
+            //     this.byId("btnExitFullScreenDelvSched").setVisible(true);
+            // }
         },
 
         setHeaderFieldsEditable(arg) {
@@ -1226,10 +1409,11 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             this.getView().byId("delvHdrEVERS").setEditable(arg);
             this.getView().byId("delvHdrDEST").setEditable(arg);
             this.getView().byId("delvHdrCOO").setEditable(arg);
-            this.getView().byId("delvHdrTOTALNOPKG").setEditable(arg);
+            this.getView().byId("fldTOTALNOPKG").setEditable(arg);
             this.getView().byId("delvHdrREFDOCNO").setEditable(arg);
             this.getView().byId("delvHdrREFDOCDT").setEditable(arg);
-            this.getView().byId("delvHdrREVNO").setEditable(arg);
+            this.getView().byId("fldREVNO").setEditable(arg);
+            this.getView().byId("delvHdrMULTISOLDTO").setEditable(arg);
             this.getView().byId("delvHdrREMARKS").setEditable(arg);
 
             this.byId("headerForm").getFormContainers().forEach(item => {
@@ -1269,10 +1453,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             this.getView().byId("shipDtlCONTTYP").setEditable(arg);
             this.getView().byId("shipDtlCONTNO").setEditable(arg);
             this.getView().byId("shipDtlSEALNO").setEditable(arg);
-            this.getView().byId("shipDtlGRSWT").setEditable(arg);
-            this.getView().byId("shipDtlNETWT").setEditable(arg);
+            this.getView().byId("fldGRSWT").setEditable(arg);
+            this.getView().byId("fldNETWT").setEditable(arg);
             this.getView().byId("shipDtlWTUOM").setEditable(arg);
-            this.getView().byId("shipDtlVOLUME").setEditable(arg);
+            this.getView().byId("fldVOLUME").setEditable(arg);
             this.getView().byId("shipDtlVOLUOM").setEditable(arg);
             this.getView().byId("shipDtlNP1").setEditable(arg);
             this.getView().byId("shipDtlNP2").setEditable(arg);
@@ -1327,10 +1511,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 this.setHeaderFieldsEditable(false);
 
                 this.getView().byId("btnEditHdr").setVisible(true);
+                this.getView().byId("btnRefreshHdr").setVisible(true);
                 this.getView().byId("btnSaveHdr").setVisible(false);
                 this.getView().byId("btnCancelHdr").setVisible(false);
 
                 this.getView().byId("btnEditShipDtl").setEnabled(true);
+                this.getView().byId("btnRefreshShipDtl").setEnabled(true);
                 this.getView().byId("btnAddDelvSched").setEnabled(true);
                 this.getView().byId("btnDeleteDelvSched").setEnabled(true);
                 this.getView().byId("btnCompleteDelvSched").setEnabled(true);
@@ -1343,10 +1529,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 this.setShipDetailFieldsEditable(false);
 
                 this.getView().byId("btnEditShipDtl").setVisible(true);
+                this.getView().byId("btnRefreshShipDtl").setVisible(true);
                 this.getView().byId("btnSaveShipDtl").setVisible(false);
                 this.getView().byId("btnCancelShipDtl").setVisible(false);
 
                 this.getView().byId("btnEditHdr").setEnabled(true);
+                this.getView().byId("btnRefreshHdr").setEnabled(true);
 
                 var oHeaderData = this._oDataBeforeChange;
                 this.getView().setModel(new JSONModel(oHeaderData), "header");
@@ -1364,8 +1552,13 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 this.getView().byId("btnCancelDelvSched").setVisible(false);
 
                 this.getView().byId("btnEditHdr").setEnabled(true);
+                this.getView().byId("btnRefreshHdr").setEnabled(true);
+                
                 oTable.getModel().setProperty("/rows", this._aDataBeforeChange);
                 oTable.bindRows("/rows");
+
+                if (this._aColFilters.length > 0) { this.setColumnFilters("delvSchedTab"); }
+                if (this._aColSorters.length > 0) { this.setColumnSorters("delvSchedTab"); }                
             }
 
             var oIconTabBar = me.byId("itbDetail");
@@ -1568,13 +1761,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             }
         },
 
-        onValueHelpInputChange: function(oEvent) {
+        onFormValueHelpInputChange: function(oEvent) {
             var oSource = oEvent.getSource();
             var isInvalid = !oSource.getSelectedKey() && oSource.getValue().trim();
             oSource.setValueState(isInvalid ? "Error" : "None");
-
-            // var sRowPath = oSource.getBindingInfo("value").binding.oContext.sPath;
-            // var sModel = oSource.getBindingInfo("value").parts[0].model;
 
             oSource.getSuggestionItems().forEach(item => {
                 if (item.getProperty("key") === oSource.getValue().trim()) {
@@ -1585,6 +1775,36 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
 
             if (isInvalid) this._validationErrors.push(oEvent.getSource().getId());
             else {
+                var sModel = oSource.getBindingInfo("value").parts[0].model;
+                var sPath = oSource.getBindingInfo("value").parts[0].path;
+
+                this.getView().getModel(sModel).setProperty(sPath, oSource.getSelectedKey());
+
+                if (sPath === "/SOLDTOCUST") {
+                    var oSoldToCust = this.getView().getModel("shiptocust").getData().filter(fItem => fItem.CUSTOMER === oSource.getSelectedKey());
+
+                    if (this.getView().getModel(sModel).getProperty("/CUSTGRP") !== oSoldToCust[0].CUSTGRP) {
+                        this.getView().getModel(sModel).setProperty("/CUSTGRP", oSoldToCust[0].CUSTGRP);
+                        this.getView().getModel(sModel).setProperty("/CONSIGN", "");
+                        this.getView().getModel(sModel).setProperty("/MESSRS", "");
+
+                        this._oModel.read("/ConsignSHSet", {
+                            urlParameters: {
+                                "$filter": "CUSTGRP eq '" + oSoldToCust[0].CUSTGRP + "'"
+                            },
+                            success: function (oData, oResponse) {
+                                me.getView().getModel("consign").setProperty("/", oData.results);
+                                // me.getView().setModel(new JSONModel(oData.results), "consign");
+                            },
+                            error: function (err) { }
+                        });
+                    }
+                }
+                else if (sPath === "/SALESTERM") {
+                    var oSalesTerm = this.getView().getModel("salesterm").getData().filter(fItem => fItem.SALESTERM === oSource.getSelectedKey());
+                    this.getView().getModel(sModel).setProperty("/SALESTERMTEXT", oSalesTerm[0].DESCRIPTION);
+                }
+
                 this._validationErrors.forEach((item, index) => {
                     if (item === oEvent.getSource().getId()) {
                         this._validationErrors.splice(index, 1)
@@ -1597,7 +1817,37 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
             this._bHeaderChanged = true;
         },
 
-        formatValueHelp: function(sKey, sColumnId) {
+        onValueHelpInputChange: function (oEvent) {
+            var oSource = oEvent.getSource();
+            var sRowPath = oSource.oParent.getBindingContext().sPath;
+            var isInvalid = !oSource.getSelectedKey() && oSource.getValue().trim();
+            oSource.setValueState(isInvalid ? "Error" : "None");
+
+            oSource.getSuggestionItems().forEach(item => {                    
+                if (item.getProperty("key") === oSource.getSelectedKey()) {
+                    isInvalid = false;
+                    oSource.setValueState(isInvalid ? "Error" : "None");
+                }
+            })
+
+            if (isInvalid) this._validationErrors.push(oEvent.getSource().getId());
+            else {
+                this.byId(this._sActiveTable).getModel().setProperty(sRowPath + '/' + oSource.getBindingInfo("value").parts[0].path, oSource.getSelectedKey());
+
+                this._validationErrors.forEach((item, index) => {
+                    if (item === oEvent.getSource().getId()) {
+                        this._validationErrors.splice(index, 1)
+                    }
+                })
+            }
+
+            this.byId(this._sActiveTable).getModel().setProperty(sRowPath + '/EDITED', true);
+
+            // if (this._sActiveTable === "headerTab") this._bHdrChanged = true;
+            // else if (this._sActiveTable === "detailTab") this._bDtlChanged = true;
+        },
+
+        formatValueHelp2: function(sKey, sColumnId) {
             // console.log(sColumnId, sKey);
             var oValue = [];
             var sValue = "";
@@ -1621,6 +1871,149 @@ function (Controller, JSONModel, MessageBox, History, MessageToast,Common) {
                 return sValue + " (" + sKey + ")";
             }
             else return sKey;
+        },
+
+        formatValueHelp: function(sValue, sPath, sKey, sText, sFormat) {
+            console.log(sValue, sPath, sKey, sText, sFormat);
+            var oValue = this.getView().getModel(sPath).getData().filter(v => v[sKey] === sValue);
+
+            if (oValue && oValue.length > 0) {
+                if (sFormat === "Value") {
+                    return oValue[0][sText];
+                }
+                else if (sFormat === "ValueKey") {
+                    return oValue[0][sText] + " (" + sValue + ")";
+                }
+                else if (sFormat === "KeyValue") {
+                    return sValue + " (" + oValue[0][sText] + ")";
+                }
+                else {
+                    return sValue
+                }
+            }
+            else return sValue;
+        },
+
+        formatFormInput(fields) {
+            fields.forEach(col => {
+                if (col.DataType === "NUMBER") {
+                      this.byId("fld" + col.ColumnName).bindValue({  
+                        model: "header",
+                        path: "/" + col.ColumnName,
+                        formatOptions: {
+                            minFractionDigits: col.Decimal,
+                            maxFractionDigits: col.Decimal
+                        },
+                        constraints: {
+                            precision: col.Length,
+                            scale: col.Decimal
+                        }
+                    });
+                }
+                else if (col.DataType === "STRING") {
+                    // console.log(col)
+                    if (this.byId("shipDtl" + col.ColumnName) !== undefined) {
+                        if (this.byId("shipDtl" + col.ColumnName).getProperty("showValueHelp") !== undefined) {
+                            if (!this.byId("shipDtl" + col.ColumnName).getProperty("showValueHelp")) {
+                                // console.log(this.byId("shipDtl" + col.ColumnName))
+                                this.byId("shipDtl" + col.ColumnName).setProperty("maxLength", col.Length);
+                            }
+                        }
+                    }
+                }
+            })
+        },
+
+        onNumberLiveChange: function(oEvent) {
+            var oSource = oEvent.getSource();
+            var vColDecPlaces = oSource.getBindingInfo("value").constraints.scale;
+            var vColLength = oSource.getBindingInfo("value").constraints.precision;
+
+            if (oEvent.getParameters().value.split(".")[0].length > (vColLength - vColDecPlaces)) {
+                oEvent.getSource().setValueState("Error");
+                oEvent.getSource().setValueStateText("Enter a number with a maximum whole number length of " + (vColLength - vColDecPlaces));
+
+                if (this._validationErrors.filter(fItem => fItem === oEvent.getSource().getId()).length === 0) {
+                    this._validationErrors.push(oEvent.getSource().getId());
+                }
+            }
+            else if (oEvent.getParameters().value.split(".").length > 1) {
+                if (vColDecPlaces === 0) {
+                    oEvent.getSource().setValueState("Error");
+                    oEvent.getSource().setValueStateText("Enter a number without decimal place/s");
+                    
+                    if (this._validationErrors.filter(fItem => fItem === oEvent.getSource().getId()).length === 0) {
+                        this._validationErrors.push(oEvent.getSource().getId());
+                    }
+                }
+                else {
+                    if (oEvent.getParameters().value.split(".")[1].length > vColDecPlaces) {
+                        oEvent.getSource().setValueState("Error");
+                        oEvent.getSource().setValueStateText("Enter a number with a maximum of " + vColDecPlaces.toString() + " decimal places");
+                        
+                        if (this._validationErrors.filter(fItem => fItem === oEvent.getSource().getId()).length === 0) {
+                            this._validationErrors.push(oEvent.getSource().getId());
+                        }
+                    }
+                    else {
+                        oEvent.getSource().setValueState("None");
+                        this._validationErrors.forEach((item, index) => {
+                            if (item === oEvent.getSource().getId()) {
+                                this._validationErrors.splice(index, 1);
+                            }
+                        })
+                    }
+                }
+            }
+            else {
+                oEvent.getSource().setValueState("None");
+                this._validationErrors.forEach((item, index) => {
+                    if (item === oEvent.getSource().getId()) {
+                        this._validationErrors.splice(index, 1);
+                    }
+                })
+            }
+
+            if (oSource.getBindingInfo("value").binding && oSource.getBindingInfo("value").binding.oContext && oSource.getBindingInfo("value").binding.oContext.sPath) {
+                var sRowPath = oSource.getBindingInfo("value").binding.oContext.sPath;
+                this.byId(this._sActiveTable).getModel().setProperty(sRowPath + '/EDITED', true);
+            }
+
+            this._bHeaderChanged = true;
+        },
+
+        setColumnFilters(sTable) {
+            if (this._aColFilters) {
+                var oTable = this.byId(sTable);
+                var oColumns = oTable.getColumns();
+
+                this._aColFilters.forEach(item => {
+                    oColumns.filter(fItem => fItem.getFilterProperty() === item.sPath)
+                        .forEach(col => {
+                            col.filter(item.oValue1);
+                        })
+                })
+            } 
+        },
+
+        setColumnSorters(sTable) {
+            if (this._aColSorters) {
+                var oTable = this.byId(sTable);
+                var oColumns = oTable.getColumns();
+
+                this._aColSorters.forEach(item => {
+                    oColumns.filter(fItem => fItem.getSortProperty() === item.sPath)
+                        .forEach(col => {
+                            col.sort(item.bDescending);
+                        })
+                })
+            } 
+        },
+
+        handleFormValueHelp: function (oEvent) {
+            //open product type value help
+            // console.log(TableValueHelp)
+            TableValueHelp.handleFormValueHelp(oEvent, this);
         },
 
     })

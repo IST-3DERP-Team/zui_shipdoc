@@ -50,3 +50,11 @@
     font-weight: bold !important;
     font-size: 1rem !important;
 }
+
+.sapMLabelRequired, .sapMLabelRequired::before {
+    color: #c75858 !important;
+}
+
+.sapMDialogScroll {
+    height: 98%;
+}

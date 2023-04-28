@@ -8,30 +8,36 @@
     xmlns:f="sap.f"
     xmlns:semantic="sap.m.semantic"
     displayBlock="true">
-    <Page showHeader="false" title="{ddtext>/GENERATEPO}" showNavButton="true">
+    <Page showHeader="false" title="{ddtext>/DELVHDR}" showNavButton="true">
         <VBox fitContainer="true" class="shipdocdtl"> 
             <Panel id="delvHdrForm" height="275px" class="sapUiNoContentPadding hdrFormBgColor">
                 <Toolbar class="sapUiTinyMarginBeginEnd">
                     <Text text="Delivery Header" class="headerTitle" />
                     <ToolbarSpacer/>
                     <Button id="btnEditHdr" 
-                        text="{ddtext>/EDIT}"
                         icon="sap-icon://edit"
                         press="onEdit"
                         tooltip="{ddtext>/EDIT}"
                         visible="true"/>
                     <Button id="btnSaveHdr" 
-                        text="{ddtext>/SAVE}"
                         icon="sap-icon://save"
                         press="onSave"
                         tooltip="{ddtext>/SAVE}"
                         visible="false"/>
                     <Button id="btnCancelHdr" 
-                        text="{ddtext>/CANCEL}"
                         icon="sap-icon://sys-cancel"
                         press="onCancel"
                         tooltip="{ddtext>/CANCEL}"
                         visible="false"/>
+                    <Button id="btnRefreshHdr" 
+                        icon="sap-icon://refresh"
+                        press="onRefresh"
+                        tooltip="{ddtext>/REFRESH}"
+                        visible="true" >
+                        <customData>
+                            <core:CustomData key="TableId" value="delvHdrForm" />
+                        </customData>
+                    </Button>
                 </Toolbar>
 
                 <form:Form id="headerForm" editable="true" class="sapUiNoContentPadding">
@@ -69,10 +75,10 @@
                                             type="Text" 
                                             value="{header>/ISSPLNT}" 
                                             showValueHelp="true"
-                                            valueHelpRequest="handleValueHelp" 
+                                            valueHelpRequest="handleFormValueHelp" 
                                             showSuggestion="true" 
                                             suggestionItems="{path: 'issplant>/', length: 10000, templateShareable: false}" 
-                                            change="onValueHelpInputChange"
+                                            change="onFormValueHelpInputChange"
                                             editable="false">
                                             <suggestionItems>
                                                 <core:Item key="{issplant>PLANTCD}" text="{issplant>PLANTCD}" />
@@ -90,10 +96,10 @@
                                             type="Text" 
                                             value="{header>/SOLDTOCUST}" 
                                             showValueHelp="true"
-                                            valueHelpRequest="handleValueHelp" 
+                                            valueHelpRequest="handleFormValueHelp" 
                                             showSuggestion="true" 
                                             suggestionItems="{path: 'shiptocust>/', length: 10000, templateShareable: false}" 
-                                            change="onValueHelpInputChange"
+                                            change="onFormValueHelpInputChange"
                                             editable="false">
                                             <suggestionItems>
                                                 <core:ListItem key="{shiptocust>CUSTOMER}" text="{shiptocust>CUSTOMER}" additionalText="{salesterm>CUSTGRP}" />
@@ -111,10 +117,10 @@
                                             type="Text" 
                                             value="{header>/BILLTOCUST}" 
                                             showValueHelp="true"
-                                            valueHelpRequest="handleValueHelp" 
+                                            valueHelpRequest="handleFormValueHelp" 
                                             showSuggestion="true" 
                                             suggestionItems="{path: 'shiptocust>/', length: 10000, templateShareable: false}" 
-                                            change="onValueHelpInputChange"
+                                            change="onFormValueHelpInputChange"
                                             editable="false">
                                             <suggestionItems>
                                                 <core:Item key="{shiptocust>CUSTOMER}" text="{shiptocust>CUSTOMER}" />
@@ -129,7 +135,7 @@
                                     <form:fields>
                                         <Input id="delvHdrCUSTGRP" value="{header>/CUSTGRP}" editable="false" />
                                     </form:fields>
-                                </form:FormElement>
+                                </form:FormElement> 
                                 <form:FormElement>
                                     <form:label>
                                         <Label text="{ddtext>/SALESTERM}" required="false"></Label>
@@ -140,10 +146,10 @@
                                             type="Text" 
                                             value="{header>/SALESTERM}" 
                                             showValueHelp="true"
-                                            valueHelpRequest="handleValueHelp" 
+                                            valueHelpRequest="handleFormValueHelp" 
                                             showSuggestion="true" 
                                             suggestionItems="{path: 'salesterm>/', length: 10000, templateShareable: false}" 
-                                            change="onValueHelpInputChange"
+                                            change="onFormValueHelpInputChange"
                                             editable="false">
                                             <suggestionItems>
                                                 <core:ListItem key="{salesterm>SALESTERM}" text="{salesterm>SALESTERM}"  additionalText="{salesterm>DESCRIPTION}" />
@@ -247,15 +253,15 @@
                                         <Input id="delvHdrEVERS"
                                             type="Text" 
                                             value="{ 
-                                                parts: [{ path: 'header>/EVERS' }, { value: 'EVERS' }],
+                                                parts: [{ path: 'header>/EVERS' },{ value: 'shipmode' },{ value: 'SHIPMODE' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
                                                 formatter: '.formatValueHelp'
                                             }" 
                                             textFormatMode="ValueKey"	
                                             showValueHelp="true"
-                                            valueHelpRequest="handleValueHelp" 
+                                            valueHelpRequest="handleFormValueHelp" 
                                             showSuggestion="true" 
                                             suggestionItems="{path: 'shipmode>/', length: 10000, templateShareable: false}" 
-                                            change="onValueHelpInputChange"
+                                            change="onFormValueHelpInputChange"
                                             editable="false">
                                             <suggestionItems>
                                                 <core:ListItem key="{shipmode>SHIPMODE}" text="{shipmode>DESCRIPTION}" additionalText="{shipmode>SHIPMODE}" />
@@ -269,7 +275,24 @@
                             <form:formElements>
                                 <form:FormElement label="{ddtext>/DEST}">
                                     <form:fields>
-                                        <Input id="delvHdrDEST" value="{header>/DEST}" editable="false" />
+                                        <!-- <Input id="delvHdrDEST" value="{header>/DEST}" editable="false" /> -->
+                                        <Input id="delvHdrDEST"
+                                            type="Text" 
+                                            value="{ 
+                                                parts: [{ path: 'header>/DEST' },{ value: 'dest' },{ value: 'DESTCD' },{ value: 'DESC1' },{ value: 'ValueKey' }],
+                                                formatter: '.formatValueHelp'
+                                            }" 
+                                            textFormatMode="ValueKey"	
+                                            showValueHelp="true"
+                                            valueHelpRequest="handleFormValueHelp" 
+                                            showSuggestion="true" 
+                                            suggestionItems="{path: 'dest>/', length: 10000, templateShareable: false}" 
+                                            change="onFormValueHelpInputChange"
+                                            editable="false">
+                                            <suggestionItems>
+                                                <core:ListItem key="{dest>DESTCD}" text="{dest>DESC1}" additionalText="{dest>DESTCD}" />
+                                            </suggestionItems>
+                                        </Input>
                                     </form:fields>
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/COO}">
@@ -279,7 +302,12 @@
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/TOTALNOPKG}">
                                     <form:fields>
-                                        <Input id="delvHdrTOTALNOPKG" value="{header>/TOTALNOPKG}" editable="false" />
+                                        <Input id="fldTOTALNOPKG" 
+                                            type="Number"
+                                            value="{header>/TOTALNOPKG}" 
+                                            textAlign="Right"
+                                            liveChange="onNumberLiveChange"
+                                            editable="false" />
                                     </form:fields>
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/REFDOCNO}">
@@ -301,14 +329,19 @@
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/REVNO}">
                                     <form:fields>
-                                        <Input id="delvHdrREVNO" value="{header>/REVNO}" editable="false" />
+                                        <Input id="fldREVNO" 
+                                            type="Number"
+                                            value="{header>/REVNO}" 
+                                            textAlign="Right"
+                                            liveChange="onNumberLiveChange"
+                                            editable="false" />
                                     </form:fields>
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/STATUS}">
                                     <form:fields>
                                         <Input id="delvHdrSTATUS" 
                                             value="{ 
-                                                parts: [{ path: 'header>/STATUS' }, { value: 'STATUS' }],
+                                                parts: [{ path: 'header>/STATUS' },{ value: 'status' },{ value: 'DLVSTATCD' },{ value: 'SHORTEXT' },{ value: 'ValueKey' }],
                                                 formatter: '.formatValueHelp'
                                             }"                                         
                                             editable="false" />
@@ -318,6 +351,18 @@
                         </form:FormContainer>
                         <form:FormContainer ariaLabelledBy="Grp4" class="sapUiNoContentPadding">
                             <form:formElements>
+                                <form:FormElement label="">
+                                    <form:fields>
+                                        <CheckBox id="delvHdrDELETED" selected="{header>/DELETED}" editable="false" text="{ddtext>/DELETED}" /> 
+                                        <CheckBox id="delvHdrMULTISOLDTO" selected="{header>/MULTISOLDTO}" editable="false" text="{ddtext>/MULTISOLDTO}" />
+                                    </form:fields>
+                                </form:FormElement>
+                                <!-- <form:FormElement label="{ddtext>/MULTISOLDTO}">
+                                    <form:fields>
+                                        <CheckBox id="delvHdrMULTISOLDTO" selected="{header>/MULTISOLDTO}" editable="false" /> 
+                                    </form:fields>
+                                </form:FormElement> -->
+
                                 <form:FormElement label="{ddtext>/CREATEDBY}">
                                     <form:fields>
                                         <Input id="delvHdrCREATEDBY" value="{header>/CREATEDBY}" editable="false" />
@@ -336,11 +381,6 @@
                                 <form:FormElement label="{ddtext>/UPDATEDDT}">
                                     <form:fields>
                                         <Input id="delvHdrUPDATEDDT" value="{header>/UPDATEDDT}" editable="false" />
-                                    </form:fields>
-                                </form:FormElement>
-                                <form:FormElement label="{ddtext>/DELETED}">
-                                    <form:fields>
-                                        <CheckBox id="delvHdrDELETED" selected="{header>/DELETED}" editable="false" /> 
                                     </form:fields>
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/REMARKS}">
@@ -384,49 +424,46 @@
                                 <Toolbar>
                                     <ToolbarSpacer/>
                                     <Button id="btnAddDelvSched" 
-                                        text="{ddtext>/ADD}"
                                         icon="sap-icon://add"
                                         press="onCreate"
                                         tooltip="{ddtext>/ADD}"
                                         visible="true"/>
                                     <Button id="btnDeleteDelvSched" 
-                                        text="{ddtext>/DELETE}"
                                         icon="sap-icon://delete"
                                         press="onDelete"
                                         tooltip="{ddtext>/DELETE}"
                                         visible="true"/>
+                                    <Button id="btnRefreshDelvSched" 
+                                        icon="sap-icon://refresh"
+                                        press="onRefresh"
+                                        tooltip="{ddtext>/REFRESH}"
+                                        visible="true" >
+                                        <customData>
+                                            <core:CustomData key="TableId" value="delvSchedTab" />
+                                        </customData>
+                                    </Button>
                                     <Button id="btnCompleteDelvSched" 
                                         text="{ddtext>/COMPLETE}"
                                         icon="sap-icon://complete"
                                         press="onComplete"
                                         tooltip="{ddtext>/COMPLETE}"
                                         visible="true"/> 
-                                    <Button id="btnRefreshDelvSched" 
-                                        text="{ddtext>/REFRESH}"
-                                        icon="sap-icon://refresh"
-                                        press="onRefresh"
-                                        tooltip="{ddtext>/REFRESH}"
-                                        visible="true"/>
                                     <Button id="btnAddNewDelvSched" 
-                                        text="{ddtext>/ADD}"
                                         icon="sap-icon://add"
                                         press="onAddNewRow" 
                                         tooltip="{ddtext>/ADD}"
                                         visible="false"/>
                                     <Button id="btnRemoveNewDelvSched" 
-                                        text="{ddtext>/REMOVE}"
                                         icon="sap-icon://sys-minus"
                                         press="onRemoveNewRow" 
                                         tooltip="{ddtext>/REMOVE}"
                                         visible="false"/>
                                     <Button id="btnSavedDelvSched" 
-                                        text="{ddtext>/SAVE}"
                                         icon="sap-icon://save"
                                         press="onSave"
                                         tooltip="{ddtext>/SAVE}"
                                         visible="false"/>
                                     <Button id="btnCancelDelvSched" 
-                                        text="{ddtext>/CANCEL}"
                                         icon="sap-icon://sys-cancel"
                                         press="onCancel"
                                         tooltip="{ddtext>/CANCEL}"
@@ -435,12 +472,20 @@
                                         icon="sap-icon://full-screen"
                                         press="onTableResize"
                                         tooltip="{ddtext>/FULLSCREEN}"
-                                        visible="true" />
+                                        visible="{= ${ui>/fullscreen} === true ? false : true}" >
+                                        <customData>
+                                            <core:CustomData key="Max" value="1" />
+                                        </customData>
+                                    </Button>
                                     <Button id="btnExitFullScreenDelvSched" 
                                         icon="sap-icon://exit-full-screen"
                                         press="onTableResize"
                                         tooltip="{ddtext>/EXITFULLSCREEN}"
-                                        visible="false" /> 
+                                        visible="{ui>/fullscreen}" >
+                                        <customData>
+                                            <core:CustomData key="Max" value="0" />
+                                        </customData>
+                                    </Button>
                                 </Toolbar>
                             </uiT:extension> 
                         </uiT:Table>
@@ -450,23 +495,47 @@
                             <Toolbar class="sapUiTinyMarginBeginEnd">
                                 <ToolbarSpacer/>
                                 <Button id="btnEditShipDtl" 
-                                    text="{ddtext>/EDIT}"
                                     icon="sap-icon://edit"
                                     press="onEdit"
                                     tooltip="{ddtext>/EDIT}"
                                     visible="true"/>
                                 <Button id="btnSaveShipDtl" 
-                                    text="{ddtext>/SAVE}"
                                     icon="sap-icon://save"
                                     press="onSave"
                                     tooltip="{ddtext>/SAVE}"
                                     visible="false"/>
                                 <Button id="btnCancelShipDtl" 
-                                    text="{ddtext>/CANCEL}"
                                     icon="sap-icon://sys-cancel"
                                     press="onCancel"
                                     tooltip="{ddtext>/CANCEL}"
                                     visible="false"/>
+                                <Button id="btnRefreshShipDtl" 
+                                    icon="sap-icon://refresh"
+                                    press="onRefresh"
+                                    tooltip="{ddtext>/REFRESH}"
+                                    visible="true" >
+                                    <customData>
+                                        <core:CustomData key="TableId" value="shipDtlForm" />
+                                    </customData>
+                                </Button>
+                                <Button id="btnFullScreenShipDtl" 
+                                    icon="sap-icon://full-screen"
+                                    press="onTableResize"
+                                    tooltip="{ddtext>/FULLSCREEN}"
+                                    visible="{= ${ui>/fullscreen} === true ? false : true}" >
+                                    <customData>
+                                        <core:CustomData key="Max" value="1" />
+                                    </customData>
+                                </Button>
+                                <Button id="btnExitFullScreenShipDtl" 
+                                    icon="sap-icon://exit-full-screen"
+                                    press="onTableResize"
+                                    tooltip="{ddtext>/EXITFULLSCREEN}"
+                                    visible="{ui>/fullscreen}" >
+                                    <customData>
+                                        <core:CustomData key="Max" value="0" />
+                                    </customData>
+                                </Button>
                             </Toolbar>
 
                             <form:Form editable="true" class="sapUiNoContentPadding">
@@ -593,12 +662,38 @@
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/CONSIGN}">
                                                 <form:fields>
-                                                    <Input id="shipDtlCONSIGN" value="{header>/CONSIGN}" editable="false" />
+                                                    <!-- <Input id="shipDtlCONSIGN" value="{header>/CONSIGN}" editable="false" /> -->
+                                                    <Input id="shipDtlCONSIGN"
+                                                        type="Text" 
+                                                        value="{header>/CONSIGN}" 
+                                                        showValueHelp="true"
+                                                        valueHelpRequest="handleFormValueHelp" 
+                                                        showSuggestion="true" 
+                                                        suggestionItems="{path: 'consign>/', length: 10000, templateShareable: false}" 
+                                                        change="onFormValueHelpInputChange"
+                                                        editable="false">
+                                                        <suggestionItems>
+                                                            <core:ListItem key="{consign>CONSIGNCD}" text="{consign>CONSIGNCD}"  additionalText="{consign>ADDR1}" />
+                                                        </suggestionItems>
+                                                    </Input>
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/MESSRS}">
                                                 <form:fields>
-                                                    <Input id="shipDtlMESSRS" value="{header>/MESSRS}" editable="false" />
+                                                    <!-- <Input id="shipDtlMESSRS" value="{header>/MESSRS}" editable="false" /> -->
+                                                    <Input id="shipDtlMESSRS"
+                                                        type="Text" 
+                                                        value="{header>/MESSRS}" 
+                                                        showValueHelp="true"
+                                                        valueHelpRequest="handleFormValueHelp" 
+                                                        showSuggestion="true" 
+                                                        suggestionItems="{path: 'consign>/', length: 10000, templateShareable: false}" 
+                                                        change="onFormValueHelpInputChange"
+                                                        editable="false">
+                                                        <suggestionItems>
+                                                            <core:ListItem key="{consign>CONSIGNCD}" text="{consign>CONSIGNCD}"  additionalText="{consign>ADDR1}" />
+                                                        </suggestionItems>
+                                                    </Input>
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/INVPRE}">
@@ -669,30 +764,57 @@
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/GRSWT}">
                                                 <form:fields>
-                                                    <Input id="shipDtlGRSWT" value="{header>/GRSWT}" editable="false" />
+                                                    <Input id="fldGRSWT" 
+                                                        type="Number"
+                                                        value="{header>/GRSWT}" 
+                                                        textAlign="Right"
+                                                        liveChange="onNumberLiveChange"
+                                                        editable="false" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/NETWT}">
                                                 <form:fields>
-                                                    <Input id="shipDtlNETWT" value="{header>/NETWT}" editable="false" />
+                                                    <Input id="fldNETWT" 
+                                                        type="Number"
+                                                        value="{header>/NETWT}" 
+                                                        textAlign="Right"
+                                                        liveChange="onNumberLiveChange"
+                                                        editable="false" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/WTUOM}">
                                                 <form:fields>
                                                     <!-- <Input id="shipDtlWTUOM" value="{header>/WTUOM}" editable="false" /> -->
-                                                    <Input id="shipDtlWTUOM"
+                                                    <!-- <Input id="shipDtlWTUOM"
                                                         type="Text" 
                                                         value="{header>/WTUOM}" 
                                                         showValueHelp="true"
                                                         valueHelpRequest="handleValueHelp" 
                                                         showSuggestion="true" 
                                                         suggestionItems="{path: 'wtuom>/', length: 10000, templateShareable: false}" 
-                                                        change="onValueHelpInputChange"
+                                                        change="onFormValueHelpInputChange"
                                                         editable="false">
                                                         <suggestionItems>
                                                             <core:ListItem key="{wtuom>UOM}" text="{wtuom>UOM}" additionalText="{wtuom>DESCRIPTION}" />
                                                         </suggestionItems>
-                                                    </Input>                                                    
+                                                    </Input> -->
+                                                    <Input id="shipDtlWTUOM"
+                                                        type="Text" 
+                                                        value="{ 
+                                                            parts: [{ path: 'header>/WTUOM' },{ value: 'voluom' },{ value: 'UOM' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
+                                                            formatter: '.formatValueHelp'
+                                                        }" 
+                                                        textFormatMode="ValueKey"	
+                                                        showValueHelp="true"
+                                                        valueHelpRequest="handleFormValueHelp" 
+                                                        showSuggestion="true" 
+                                                        suggestionItems="{path: 'wtuom>/', length: 10000, templateShareable: false}" 
+                                                        change="onFormValueHelpInputChange"
+                                                        editable="false">
+                                                        <suggestionItems>
+                                                            <core:ListItem key="{wtuom>UOM}" text="{wtuom>DESCRIPTION}" additionalText="{wtuom>UOM}" />
+                                                        </suggestionItems>
+                                                    </Input>
                                                 </form:fields>
                                             </form:FormElement>
                                         </form:formElements>
@@ -701,25 +823,47 @@
                                         <form:formElements>
                                             <form:FormElement label="{ddtext>/VOLUME}">
                                                 <form:fields>
-                                                    <Input id="shipDtlVOLUME" value="{header>/VOLUME}" editable="false" />
+                                                    <Input id="fldVOLUME" 
+                                                        type="Number"
+                                                        value="{header>/VOLUME}" 
+                                                        textAlign="Right"
+                                                        liveChange="onNumberLiveChange"
+                                                        editable="false" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/VOLUOM}">
                                                 <form:fields>
                                                     <!-- <Input id="shipDtlVOLUOM" value="{header>/VOLUOM}" editable="false" /> -->
-                                                    <Input id="shipDtlVOLUOM"
+                                                    <!-- <Input id="shipDtlVOLUOM"
                                                         type="Text" 
                                                         value="{header>/VOLUOM}" 
                                                         showValueHelp="true"
                                                         valueHelpRequest="handleValueHelp" 
                                                         showSuggestion="true" 
                                                         suggestionItems="{path: 'voluom>/', length: 10000, templateShareable: false}" 
-                                                        change="onValueHelpInputChange"
+                                                        change="onFormValueHelpInputChange"
                                                         editable="false">
                                                         <suggestionItems>
                                                             <core:ListItem key="{voluom>UOM}" text="{voluom>UOM}" additionalText="{voluom>DESCRIPTION}" />
                                                         </suggestionItems>
-                                                    </Input> 
+                                                    </Input>  -->
+                                                    <Input id="shipDtlVOLUOM"
+                                                        type="Text" 
+                                                        value="{ 
+                                                            parts: [{ path: 'header>/VOLUOM' },{ value: 'voluom' },{ value: 'UOM' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
+                                                            formatter: '.formatValueHelp'
+                                                        }" 
+                                                        textFormatMode="ValueKey"	
+                                                        showValueHelp="true"
+                                                        valueHelpRequest="handleFormValueHelp" 
+                                                        showSuggestion="true" 
+                                                        suggestionItems="{path: 'voluom>/', length: 10000, templateShareable: false}" 
+                                                        change="onFormValueHelpInputChange"
+                                                        editable="false">
+                                                        <suggestionItems>
+                                                            <core:ListItem key="{voluom>UOM}" text="{voluom>DESCRIPTION}" additionalText="{voluom>UOM}" />
+                                                        </suggestionItems>
+                                                    </Input>                                                    
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/NP1}">
@@ -791,6 +935,38 @@
                             columnResize="onColumnUpdated"
                             columnSelect="onColumnUpdated"
                             columnVisibility="onColumnUpdated">
+                            <uiT:extension>
+                                <Toolbar>
+                                    <ToolbarSpacer/>
+                                    <Button id="btnRefreshDelvDtl" 
+                                        icon="sap-icon://refresh"
+                                        press="onRefresh"
+                                        tooltip="{ddtext>/REFRESH}"
+                                        visible="true" >
+                                        <customData>
+                                            <core:CustomData key="TableId" value="delvDtlTab" />
+                                        </customData>
+                                    </Button>
+                                    <Button id="btnFullScreenDelvDtl" 
+                                        icon="sap-icon://full-screen"
+                                        press="onTableResize"
+                                        tooltip="{ddtext>/FULLSCREEN}"
+                                        visible="{= ${ui>/fullscreen} === true ? false : true}" >
+                                        <customData>
+                                            <core:CustomData key="Max" value="1" />
+                                        </customData>
+                                    </Button>
+                                    <Button id="btnExitFullScreenDelvDtl" 
+                                        icon="sap-icon://exit-full-screen"
+                                        press="onTableResize"
+                                        tooltip="{ddtext>/EXITFULLSCREEN}"
+                                        visible="{ui>/fullscreen}" >
+                                        <customData>
+                                            <core:CustomData key="Max" value="0" />
+                                        </customData>
+                                    </Button>
+                                </Toolbar>
+                            </uiT:extension>                             
                         </uiT:Table>
                     </IconTabFilter>
                     <IconTabFilter text="Status" key="status">
@@ -809,6 +985,38 @@
                             columnResize="onColumnUpdated"
                             columnSelect="onColumnUpdated"
                             columnVisibility="onColumnUpdated">
+                            <uiT:extension>
+                                <Toolbar>
+                                    <ToolbarSpacer/>
+                                    <Button id="btnRefreshDelvStat" 
+                                        icon="sap-icon://refresh"
+                                        press="onRefresh"
+                                        tooltip="{ddtext>/REFRESH}"
+                                        visible="true" >
+                                        <customData>
+                                            <core:CustomData key="TableId" value="delvStatTab" />
+                                        </customData>
+                                    </Button>
+                                    <Button id="btnFullScreenDelvStat" 
+                                        icon="sap-icon://full-screen"
+                                        press="onTableResize"
+                                        tooltip="{ddtext>/FULLSCREEN}"
+                                        visible="{= ${ui>/fullscreen} === true ? false : true}" >
+                                        <customData>
+                                            <core:CustomData key="Max" value="1" />
+                                        </customData>
+                                    </Button>
+                                    <Button id="btnExitFullScreenDelvStat" 
+                                        icon="sap-icon://exit-full-screen"
+                                        press="onTableResize"
+                                        tooltip="{ddtext>/EXITFULLSCREEN}"
+                                        visible="{ui>/fullscreen}" >
+                                        <customData>
+                                            <core:CustomData key="Max" value="0" />
+                                        </customData>
+                                    </Button>
+                                </Toolbar>
+                            </uiT:extension>                            
                         </uiT:Table>
                     </IconTabFilter>
                 </items>

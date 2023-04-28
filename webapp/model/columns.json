@@ -1,0 +1,97 @@
+{
+    "header": [
+        {"ColumnName": "ISSPLNT", 
+            "ValueHelp": {"show": true, "items": {"path": "issplant", "value": "PLANTCD", "text": "PLANTCD"},
+                "SuggestionItems": {"path": "issplant>/", "text": "{issplant>PLANTCD}" },
+                "columns": "tvh_issplnt"
+            }
+        },
+        {"ColumnName": "SOLDTOCUST", 
+            "ValueHelp": {"show": true, "items": {"path": "shiptocust", "value": "CUSTOMER", "text": "CUSTGRP"},
+                "SuggestionItems": {"path": "shiptocust>/", "text": "{shiptocust>CUSTOMER}", "additionalText": "{shiptocust>CUSTGRP}",  "maxSuggestionWidth": "300px"},
+                "columns": "tvh_soldtocust"
+            }
+        },
+        {"ColumnName": "BILLTOCUST", 
+            "ValueHelp": {"show": true, "items": {"path": "shiptocust", "value": "CUSTOMER", "text": "CUSTOMER"},
+                "SuggestionItems": {"path": "shiptocust>/", "text": "{shiptocust>CUSTOMER}", "maxSuggestionWidth": "300px"},
+                "columns": "tvh_billtocust"
+            }
+        },
+        {"ColumnName": "SALESTERM", 
+            "ValueHelp": {"show": true, "items": {"path": "salesterm", "value": "SALESTERM", "text": "INCO1" },
+                "SuggestionItems": {"path": "salesterm>/", "text": "{salesterm>SALESTERM}", "additionalText": "{salesterm>DESCRIPTION}", "maxSuggestionWidth": "300px"},
+                "columns": "tvh_salesterm"
+            }
+        },
+        {"ColumnName": "EVERS", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "shipmode", "value": "SHIPMODE", "text": "DESCRIPTION"},
+                "SuggestionItems": {"path": "shipmode>/", "text": "{shipmode>SHIPMODE}", "additionalText": "{shipmode>DESCRIPTION}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_evers"
+            }
+        },
+        {"ColumnName": "DEST", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "dest", "value": "DESTCD", "text": "DESC1"},
+                "SuggestionItems": {"path": "dest>/", "text": "{dest>DESTCD}", "additionalText": "{dest>DESC1}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_dest"
+            }
+        },
+        {"ColumnName": "CONSIGN", 
+            "ValueHelp": {"show": true, "items": {"path": "consign", "value": "CONSIGNCD", "text": "CONSIGNCD"},
+                "SuggestionItems": {"path": "consign>/", "text": "{consign>CONSIGNCD}", "additionalText": "{consign>ADDR1}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_consign"
+            }
+        },
+        {"ColumnName": "MESSRS", 
+            "ValueHelp": {"show": true, "items": {"path": "consign", "value": "CONSIGNCD", "text": "CONSIGNCD"},
+                "SuggestionItems": {"path": "consign>/", "text": "{consign>CONSIGNCD}", "additionalText": "{consign>ADDR1}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_consign"
+            }
+        },
+        {"ColumnName": "VOLUOM", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "voluom", "value": "UOM", "text": "DESCRIPTION"},
+                "SuggestionItems": {"path": "voluom>/", "text": "{voluom>UOM}", "additionalText": "{voluom>DESCRIPTION}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_uom"
+            }
+        },
+        {"ColumnName": "WTUOM", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "wtuom", "value": "UOM", "text": "DESCRIPTION"},
+                "SuggestionItems": {"path": "wtuom>/", "text": "{wtuom>UOM}", "additionalText": "{wtuom>DESCRIPTION}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_uom"
+            }
+        }
+    ],
+    "tvh_issplnt": [
+        {"ColumnName": "PLANTCD", "DataType": "STRING", "ColumnWidth": "340px", "Visible": true, "Key": true, "Value": true}
+    ],    
+    "tvh_soldtocust": [
+        {"ColumnName": "CUSTOMER", "DataType": "STRING", "ColumnWidth": "200px", "Visible": true, "Key": true, "Value": true},
+        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "200px", "Visible": true, "Key": false, "Value": false}
+    ],
+    "tvh_billtocust": [
+        {"ColumnName": "CUSTOMER", "DataType": "STRING", "ColumnWidth": "340px", "Visible": true, "Key": true, "Value": true},
+        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "200px", "Visible": false, "Key": false, "Value": false}
+    ],
+    "tvh_salesterm": [
+        {"ColumnName": "SALESTERM", "DataType": "STRING", "ColumnWidth": "150px", "Visible": true, "Key": true, "Value": true},
+        {"ColumnName": "DESCRIPTION", "DataType": "STRING", "ColumnWidth": "250px", "Visible": true, "Key": false, "Value": false}
+    ],
+    "tvh_evers": [
+        {"ColumnName": "SHIPMODE", "DataType": "STRING", "ColumnWidth": "150px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "DESCRIPTION", "DataType": "STRING", "ColumnWidth": "250px", "Visible": true, "Key": false, "Value": true}
+    ],
+    "tvh_dest": [
+        {"ColumnName": "DESTCD", "DataType": "STRING", "ColumnWidth": "100px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "DESC1", "DataType": "STRING", "ColumnWidth": "300px", "Visible": true, "Key": false, "Value": true}
+    ],
+    "tvh_consign": [
+        {"ColumnName": "CONSIGNCD", "DataType": "STRING", "ColumnWidth": "150px", "Visible": true, "Key": true, "Value": true},
+        {"ColumnName": "ADDR1", "DataType": "STRING", "ColumnWidth": "500px", "Visible": true, "Key": false, "Value": false},
+        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "300px", "Visible": false, "Key": false, "Value": false}
+    ],
+    "tvh_uom": [
+        {"ColumnName": "UOM", "DataType": "STRING", "ColumnWidth": "100px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "DESCRIPTION", "DataType": "STRING", "ColumnWidth": "300px", "Visible": true, "Key": false, "Value": true}
+    ]
+
+}
