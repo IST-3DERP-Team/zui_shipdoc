@@ -816,8 +816,7 @@ sap.ui.define([
 
                 var oRouter = sap.ui.core.UIComponent.getRouterFor(me);
                 oRouter.navTo("RouteDetail");
-                return;
-
+ 
                 var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK_SRV");
                             
                 var oParamLock = {
@@ -891,7 +890,6 @@ sap.ui.define([
             },
 
             unLock() {
-                return;
                 console.log("unlock");
                 var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK_SRV");
                             
