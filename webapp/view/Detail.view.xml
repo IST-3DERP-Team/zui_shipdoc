@@ -62,7 +62,7 @@
                             <form:formElements>
                                 <form:FormElement label="{ddtext>/DLVNO}">
                                     <form:fields>
-                                        <Input id="delvHdrDLVNO" value="{header>/DLVNO}" editable="false" />
+                                        <Input id="delvHdrDLVNO" value="{header>/DLVNO}" editable="false"/>
                                     </form:fields>
                                 </form:FormElement>
                                 <form:FormElement>
@@ -177,7 +177,8 @@
                                             placeholder="Enter Date"
                                             displayFormat="MM/dd/yyyy"
                                             valueFormat="MM/dd/yyyy"
-                                            editable="false" />                                    
+                                            editable="false" 
+                                            change="onInputChange" />                                    
                                         <!-- <Input id="delvHdrDOCDT" value="{header>/DOCDT}" editable="false" /> -->
                                     </form:fields>
                                 </form:FormElement>
@@ -192,7 +193,8 @@
                                             placeholder="Enter Date"
                                             displayFormat="MM/dd/yyyy"
                                             valueFormat="MM/dd/yyyy"
-                                            editable="false" />                                      
+                                            editable="false" 
+                                            change="onInputChange" />                                      
                                         <!-- <Input id="delvHdrPOSTDT" value="{header>/POSTDT}" editable="false" /> -->
                                     </form:fields>
                                 </form:FormElement>
@@ -204,7 +206,8 @@
                                             placeholder="Enter Date"
                                             displayFormat="MM/dd/yyyy"
                                             valueFormat="MM/dd/yyyy"
-                                            editable="false" />                                     
+                                            editable="false" 
+                                            change="onInputChange" />                                     
                                         <!-- <Input id="delvHdrPLANDLVDT" value="{header>/PLANDLVDT}" editable="false" /> -->
                                     </form:fields>
                                 </form:FormElement>
@@ -216,7 +219,8 @@
                                             placeholder="Enter Date"
                                             displayFormat="MM/dd/yyyy"
                                             valueFormat="MM/dd/yyyy"
-                                            editable="false" />                                     
+                                            editable="false" 
+                                            change="onInputChange" />                                     
                                         <!-- <Input id="delvHdrINDCDT" value="{header>/INDCDT}" editable="false" /> -->
                                     </form:fields>
                                 </form:FormElement>
@@ -228,7 +232,8 @@
                                             placeholder="Enter Date"
                                             displayFormat="MM/dd/yyyy"
                                             valueFormat="MM/dd/yyyy"
-                                            editable="false" />                                    
+                                            editable="false" 
+                                            change="onInputChange" />                                    
                                         <!-- <Input id="delvHdrEXFTYDT" value="{header>/EXFTYDT}" editable="false" /> -->
                                     </form:fields>
                                 </form:FormElement>
@@ -240,7 +245,8 @@
                                             placeholder="Enter Date"
                                             displayFormat="MM/dd/yyyy"
                                             valueFormat="MM/dd/yyyy"
-                                            editable="false" />                                     
+                                            editable="false" 
+                                            change="onInputChange" />                                     
                                         <!-- <Input id="delvHdrDEPARTDT" value="{header>/DEPARTDT}" editable="false" /> -->
                                     </form:fields>
                                 </form:FormElement>
@@ -297,7 +303,7 @@
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/COO}">
                                     <form:fields>
-                                        <Input id="delvHdrCOO" value="{header>/COO}" editable="false" />
+                                        <Input id="delvHdrCOO" value="{header>/COO}" editable="false" change="onInputChange" />
                                     </form:fields>
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/TOTALNOPKG}">
@@ -312,7 +318,7 @@
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/REFDOCNO}">
                                     <form:fields>
-                                        <Input id="delvHdrREFDOCNO" value="{header>/REFDOCNO}" editable="false" />
+                                        <Input id="delvHdrREFDOCNO" value="{header>/REFDOCNO}" editable="false" change="onInputChange" />
                                     </form:fields>
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/REFDOCDT}">
@@ -323,7 +329,8 @@
                                             placeholder="Enter Date"
                                             displayFormat="MM/dd/yyyy"
                                             valueFormat="MM/dd/yyyy"
-                                            editable="false" />                                     
+                                            editable="false" 
+                                            change="onInputChange" />                                     
                                         <!-- <Input id="delvHdrREFDOCDT" value="{header>/REFDOCDT}" editable="false" /> -->
                                     </form:fields>
                                 </form:FormElement>
@@ -385,7 +392,7 @@
                                 </form:FormElement>
                                 <form:FormElement label="{ddtext>/REMARKS}">
                                     <form:fields>
-                                        <TextArea id="delvHdrREMARKS" value="{header>/REMARKS}" editable="false" />
+                                        <TextArea id="delvHdrREMARKS" value="{header>/REMARKS}" editable="false" change="onInputChange" />
                                     </form:fields>
                                 </form:FormElement>
                             </form:formElements>
@@ -560,42 +567,42 @@
                                         <form:formElements>
                                             <form:FormElement label="{ddtext>/VESSEL}">
                                                 <form:fields>
-                                                    <Input id="shipDtlVESSEL" value="{header>/VESSEL}" editable="false" />
+                                                    <Input id="shipDtlVESSEL" value="{header>/VESSEL}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/VOYAGE}">
                                                 <form:fields>
-                                                    <Input id="shipDtlVOYAGE" value="{header>/VOYAGE}" editable="false" />
+                                                    <Input id="shipDtlVOYAGE" value="{header>/VOYAGE}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/CARRIER}">
                                                 <form:fields>
-                                                    <Input id="shipDtlCARRIER" value="{header>/CARRIER}" editable="false" />
+                                                    <Input id="shipDtlCARRIER" value="{header>/CARRIER}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/FORWRDR}">
                                                 <form:fields>
-                                                    <Input id="shipDtlFORWRDR" value="{header>/FORWRDR}" editable="false" />
+                                                    <Input id="shipDtlFORWRDR" value="{header>/FORWRDR}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/FORREFNO}">
                                                 <form:fields>
-                                                    <Input id="shipDtlFORREFNO" value="{header>/FORREFNO}" editable="false" />
+                                                    <Input id="shipDtlFORREFNO" value="{header>/FORREFNO}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/BOOKINGNO}">
                                                 <form:fields>
-                                                    <Input id="shipDtlBOOKINGNO" value="{header>/BOOKINGNO}" editable="false" />
+                                                    <Input id="shipDtlBOOKINGNO" value="{header>/BOOKINGNO}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/PORTLD}">
                                                 <form:fields>
-                                                    <Input id="shipDtlPORTLD" value="{header>/PORTLD}" editable="false" />
+                                                    <Input id="shipDtlPORTLD" value="{header>/PORTLD}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/PORTDIS}">
                                                 <form:fields>
-                                                    <Input id="shipDtlPORTDIS" value="{header>/PORTDIS}" editable="false" />
+                                                    <Input id="shipDtlPORTDIS" value="{header>/PORTDIS}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/ETD}">
@@ -606,7 +613,8 @@
                                                         placeholder="Enter Date"
                                                         displayFormat="MM/dd/yyyy"
                                                         valueFormat="MM/dd/yyyy"
-                                                        editable="false" />                                                 
+                                                        editable="false" 
+                                                        change="onInputChange" />                                                 
                                                     <!-- <Input id="shipDtlETD" value="{header>/ETD}" editable="false" /> -->
                                                 </form:fields>
                                             </form:FormElement>
@@ -618,7 +626,8 @@
                                                         placeholder="Enter Date"
                                                         displayFormat="MM/dd/yyyy"
                                                         valueFormat="MM/dd/yyyy"
-                                                        editable="false" />  
+                                                        editable="false" 
+                                                        change="onInputChange" />  
                                                     <!-- <Input id="shipDtlETA" value="{header>/ETA}" editable="false" /> -->
                                                 </form:fields>
                                             </form:FormElement>
@@ -628,7 +637,7 @@
                                         <form:formElements>
                                             <form:FormElement label="{ddtext>/HBL}">
                                                 <form:fields>
-                                                    <Input id="shipDtlHBL" value="{header>/HBL}" editable="false" />
+                                                    <Input id="shipDtlHBL" value="{header>/HBL}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/HBLDT}">
@@ -639,13 +648,14 @@
                                                         placeholder="Enter Date"
                                                         displayFormat="MM/dd/yyyy"
                                                         valueFormat="MM/dd/yyyy"
-                                                        editable="false" />                                                 
+                                                        editable="false" 
+                                                        change="onInputChange" />                                                 
                                                     <!-- <Input id="shipDtlHBLDT" value="{header>/HBLDT}" editable="false" /> -->
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/MBL}">
                                                 <form:fields>
-                                                    <Input id="shipDtlMBL" value="{header>/MBL}" editable="false" />
+                                                    <Input id="shipDtlMBL" value="{header>/MBL}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/MBLDT}">
@@ -656,7 +666,8 @@
                                                         placeholder="Enter Date"
                                                         displayFormat="MM/dd/yyyy"
                                                         valueFormat="MM/dd/yyyy"
-                                                        editable="false" />                                                 
+                                                        editable="false" 
+                                                        change="onInputChange" />                                                 
                                                     <!-- <Input id="shipDtlMBLDT" value="{header>/MBLDT}" editable="false" /> -->
                                                 </form:fields>
                                             </form:FormElement>
@@ -698,17 +709,17 @@
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/INVPRE}">
                                                 <form:fields>
-                                                    <Input id="shipDtlINVPRE" value="{header>/INVPRE}" editable="false" />
+                                                    <Input id="shipDtlINVPRE" value="{header>/INVPRE}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/INVNO}">
                                                 <form:fields>
-                                                    <Input id="shipDtlINVNO" value="{header>/INVNO}" editable="false" />
+                                                    <Input id="shipDtlINVNO" value="{header>/INVNO}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/INVSUF}">
                                                 <form:fields>
-                                                    <Input id="shipDtlINVSUF" value="{header>/INVSUF}" editable="false" />
+                                                    <Input id="shipDtlINVSUF" value="{header>/INVSUF}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/INVDT}">
@@ -719,7 +730,8 @@
                                                         placeholder="Enter Date"
                                                         displayFormat="MM/dd/yyyy"
                                                         valueFormat="MM/dd/yyyy"
-                                                        editable="false" />                                                 
+                                                        editable="false" 
+                                                        change="onInputChange" />                                                 
                                                     <!-- <Input id="shipDtlINVDT" value="{header>/INVDT}" editable="false" /> -->
                                                 </form:fields>
                                             </form:FormElement>
@@ -729,37 +741,37 @@
                                         <form:formElements>
                                             <form:FormElement label="{ddtext>/ACCTTYP}">
                                                 <form:fields>
-                                                    <Input id="shipDtlACCTTYP" value="{header>/ACCTTYP}" editable="false" />
+                                                    <Input id="shipDtlACCTTYP" value="{header>/ACCTTYP}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/IMPTR}">
                                                 <form:fields>
-                                                    <Input id="shipDtlIMPTR" value="{header>/IMPTR}" editable="false" />
+                                                    <Input id="shipDtlIMPTR" value="{header>/IMPTR}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/EXPTR}">
                                                 <form:fields>
-                                                    <Input id="shipDtlEXPTR" value="{header>/EXPTR}" editable="false" />
+                                                    <Input id="shipDtlEXPTR" value="{header>/EXPTR}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/FINLDEST}">
                                                 <form:fields>
-                                                    <Input id="shipDtlFINLDEST" value="{header>/FINLDEST}" editable="false" />
+                                                    <Input id="shipDtlFINLDEST" value="{header>/FINLDEST}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/CONTTYP}">
                                                 <form:fields>
-                                                    <Input id="shipDtlCONTTYP" value="{header>/CONTTYP}" editable="false" />
+                                                    <Input id="shipDtlCONTTYP" value="{header>/CONTTYP}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/CONTNO}">
                                                 <form:fields>
-                                                    <Input id="shipDtlCONTNO" value="{header>/CONTNO}" editable="false" />
+                                                    <Input id="shipDtlCONTNO" value="{header>/CONTNO}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/SEALNO}">
                                                 <form:fields>
-                                                    <Input id="shipDtlSEALNO" value="{header>/SEALNO}" editable="false" />
+                                                    <Input id="shipDtlSEALNO" value="{header>/SEALNO}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/GRSWT}">
@@ -868,27 +880,27 @@
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/NP1}">
                                                 <form:fields>
-                                                    <Input id="shipDtlNP1" value="{header>/NP1}" editable="false" />
+                                                    <Input id="shipDtlNP1" value="{header>/NP1}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/NP2}">
                                                 <form:fields>
-                                                    <Input id="shipDtlNP2" value="{header>/NP2}" editable="false" />
+                                                    <Input id="shipDtlNP2" value="{header>/NP2}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/NP3}">
                                                 <form:fields>
-                                                    <Input id="shipDtlNP3" value="{header>/NP3}" editable="false" />
+                                                    <Input id="shipDtlNP3" value="{header>/NP3}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/NP4}">
                                                 <form:fields>
-                                                    <Input id="shipDtlNP4" value="{header>/NP4}" editable="false" />
+                                                    <Input id="shipDtlNP4" value="{header>/NP4}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/EXPLICNO}">
                                                 <form:fields>
-                                                    <Input id="shipDtlEXPLICNO" value="{header>/EXPLICNO}" editable="false" />
+                                                    <Input id="shipDtlEXPLICNO" value="{header>/EXPLICNO}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/EXPLICDT}">
@@ -899,18 +911,19 @@
                                                         placeholder="Enter Date"
                                                         displayFormat="MM/dd/yyyy"
                                                         valueFormat="MM/dd/yyyy"
-                                                        editable="false" />                                                 
+                                                        editable="false" 
+                                                        change="onInputChange" />                                                 
                                                     <!-- <Input id="shipDtlEXPLICDT" value="{header>/EXPLICDT}" editable="false" /> -->
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/INSPOL}">
                                                 <form:fields>
-                                                    <Input id="shipDtlINSPOL" value="{header>/INSPOL}" editable="false" />
+                                                    <Input id="shipDtlINSPOL" value="{header>/INSPOL}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                             <form:FormElement label="{ddtext>/TCINVNO}">
                                                 <form:fields>
-                                                    <Input id="shipDtlTCINVNO" value="{header>/TCINVNO}" editable="false" />
+                                                    <Input id="shipDtlTCINVNO" value="{header>/TCINVNO}" editable="false" change="onInputChange" />
                                                 </form:fields>
                                             </form:FormElement>
                                         </form:formElements>
@@ -935,9 +948,17 @@
                             columnResize="onColumnUpdated"
                             columnSelect="onColumnUpdated"
                             columnVisibility="onColumnUpdated">
+                            <uiT:rowSettingsTemplate>
+                                <uiT:RowSettings highlight="{= ${EDITED} === true ? 'Warning' : null}" />
+                            </uiT:rowSettingsTemplate>
                             <uiT:extension>
                                 <Toolbar>
                                     <ToolbarSpacer/>
+                                    <Button id="btnEditDelvDtl" 
+                                        icon="sap-icon://edit"
+                                        press="onEdit"
+                                        tooltip="{ddtext>/EDIT}"
+                                        visible="true"/>
                                     <Button id="btnRefreshDelvDtl" 
                                         icon="sap-icon://refresh"
                                         press="onRefresh"
@@ -947,6 +968,16 @@
                                             <core:CustomData key="TableId" value="delvDtlTab" />
                                         </customData>
                                     </Button>
+                                    <Button id="btnSaveDelvDtl" 
+                                        icon="sap-icon://save"
+                                        press="onSave"
+                                        tooltip="{ddtext>/SAVE}"
+                                        visible="false"/>
+                                    <Button id="btnCancelDelvDtl" 
+                                        icon="sap-icon://sys-cancel"
+                                        press="onCancel"
+                                        tooltip="{ddtext>/CANCEL}"
+                                        visible="false"/>
                                     <Button id="btnFullScreenDelvDtl" 
                                         icon="sap-icon://full-screen"
                                         press="onTableResize"
@@ -966,7 +997,7 @@
                                         </customData>
                                     </Button>
                                 </Toolbar>
-                            </uiT:extension>                             
+                            </uiT:extension> 
                         </uiT:Table>
                     </IconTabFilter>
                     <IconTabFilter text="Status" key="status">

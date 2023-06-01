@@ -216,6 +216,7 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "INFO_NO_DATA_MODIFIED"}); 
                 oDDTextParam.push({CODE: "INFO_DLV_INVOICE_REQD"}); 
                 oDDTextParam.push({CODE: "INFO_DLV_INSUFFICIENT_STOCK"}); 
+                oDDTextParam.push({CODE: "INFO_CHECK_INVALID_DLVQTYBSE"}); 
 
                 this._oModelCommon.create("/CaptionMsgSet", { CaptionMsgItems: oDDTextParam  }, {
                     method: "POST",

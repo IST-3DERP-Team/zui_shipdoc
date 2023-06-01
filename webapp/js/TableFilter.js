@@ -961,7 +961,7 @@ sap.ui.define([
         applyColFilters: function(sTableId, oThis) {
             var me = oThis;
             var oDialog = me._GenericFilterDialog;
-            console.log(me._colFilters[sTableId])
+
             if (me._colFilters[sTableId] !== undefined) {
                 if (oDialog) {
                     var aColumnItems = me._colFilters[sTableId].items;
