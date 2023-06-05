@@ -452,6 +452,24 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         if (!(item.UPDATEDDT === null || item.UPDATEDDT === ""))
                         { item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT)); }
 
+                        if (!(item.ETD === null || item.ETD === ""))
+                        { item.ETD = dateFormat.format(new Date(item.ETD)); }
+
+                        if (!(item.ETA === null || item.ETA === ""))
+                        { item.ETA = dateFormat.format(new Date(item.ETA)); }
+
+                        if (!(item.HBLDT === null || item.HBLDT === ""))
+                        { item.HBLDT = dateFormat.format(new Date(item.HBLDT)); }
+
+                        if (!(item.MBLDT === null || item.MBLDT === ""))
+                        { item.MBLDT = dateFormat.format(new Date(item.MBLDT)); }
+
+                        if (!(item.INVDT === null || item.INVDT === ""))
+                        { item.INVDT = dateFormat.format(new Date(item.INVDT)); }
+
+                        if (!(item.EXPLICDT === null || item.EXPLICDT === ""))
+                        { item.EXPLICDT = dateFormat.format(new Date(item.EXPLICDT)); }
+
                         if (!(item.DELETED === null || item.DELETED === ""))
                         { item.DELETED = true; }
                         else { item.DELETED = false; }
@@ -459,14 +477,14 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         if (!(item.MULTISOLDTO === null || item.MULTISOLDTO === ""))
                         { item.MULTISOLDTO = true; }
                         else { item.MULTISOLDTO = false; }
-
+                        
                         if (index === 0) {
                             item.ACTIVE = "X";
                             me.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv", item.DLVNO);
                         }
                         else { item.ACTIVE = ""; }
                     });
-                    console.log(oData.results[0])
+                    console.log(oData.results[0]);
                     me.getView().getModel("header").setProperty("/", oData.results[0]);
                     me._oDataBeforeChange = jQuery.extend(true, {}, oData.results[0]);
                     Common.closeProcessingDialog(me);
@@ -1247,6 +1265,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         var oIconTabBar = me.byId("itbDetail");
                         oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
 
+                        if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
+
                         me.unLock();
                         me._dataMode = "READ";
 
@@ -1318,6 +1338,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
                             me.byId("delvSchedTab").getModel().setProperty("/rows", oTable.getModel().getData().rows.concat(me._aDataBeforeChange));
                             me.byId("delvSchedTab").bindRows("/rows");
+
+                            if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
 
                             me.getDelvDetailData();
                             me.unLock();
@@ -1406,6 +1428,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     if (iKeyCount > 1) entitySet = entitySet.substring(0, entitySet.length - 1);
                     entitySet += ")";
 
+                    console.log(param)
                     this._oModel.update(entitySet, param, mParameters);
                 })
                 
@@ -1427,6 +1450,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         var oIconTabBar = me.byId("itbDetail");
                         oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
         
+                        if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
+                        
                         me._dataMode = "READ";
                         me.unLock();
 
@@ -1480,55 +1505,66 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         this._addToDelvSched = this.byId("delvSchedTab").getModel().getData().rows;
 
                         if (aSelIndices.length > 0) {
-                            Common.openProcessingDialog(this);
+                            MessageBox.confirm(me.getView().getModel("ddtext").getData()["CONF_DELETE_RECORDS"], {
+                                actions: ["Yes", "No"],
+                                onClose: function (sAction) {
+                                    if (sAction === "Yes") {
+                                        Common.openProcessingDialog(this);
 
-                            var mParameters = { groupId:"update" }
-
-                            aSelIndices.forEach(item => {
-                                oTmpSelectedIndices.push(oTable.getBinding("rows").aIndices[item])
-                            })
-
-                            aSelIndices = oTmpSelectedIndices;
-
-                            aSelIndices.forEach((item, index) => {
-                                var sEntitySet = "/DelvSchedSet(DLVNO='" + aData.at(item).DLVNO + "',IONO='" + aData.at(item).IONO + "',DLVSEQ='" + aData.at(item).DLVSEQ + "')";
-                                this._oModel.delete(sEntitySet, null, mParameters);
-                            })
-
-                            this._oModel.setUseBatch(true);
-                            this._oModel.setDeferredGroups(["update"]);
-
-                            this._oModel.submitChanges({
-                                groupId: "update",
-                                success: function (oData, oResponse) {
-                                    aSelIndices.sort((a,b) => (a < b ? 1 : -1));
-                                    aSelIndices.forEach((item, index) => {
-                                        var idxToRemove = aData.indexOf(aData.at(item));
-                                        aData.splice(idxToRemove, 1);
-                                    })
-
-                                    me.byId("delvSchedTab").getModel().setProperty("/rows", aData);
-                                    me.byId("delvSchedTab").bindRows("/rows");
-                                    me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
-
-                                    me.unLock();
-                                    Common.closeProcessingDialog(me);
-                                    MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_DELETED"]);
-                                },
-                                error: function () {
-                                    Common.closeProcessingDialog(me);
+                                        var mParameters = { groupId:"update" }
+            
+                                        aSelIndices.forEach(item => {
+                                            oTmpSelectedIndices.push(oTable.getBinding("rows").aIndices[item])
+                                        })
+            
+                                        aSelIndices = oTmpSelectedIndices;
+            
+                                        aSelIndices.forEach((item, index) => {
+                                            var sEntitySet = "/DelvSchedSet(DLVNO='" + aData.at(item).DLVNO + "',IONO='" + aData.at(item).IONO + "',DLVSEQ=" + aData.at(item).DLVSEQ + ")";
+                                            this._oModel.remove(sEntitySet, null, mParameters);
+                                        })
+            
+                                        this._oModel.setUseBatch(true);
+                                        this._oModel.setDeferredGroups(["update"]);
+            
+                                        this._oModel.submitChanges({
+                                            groupId: "update",
+                                            success: function (oData, oResponse) {
+                                                aSelIndices.sort((a,b) => (a < b ? 1 : -1));
+                                                aSelIndices.forEach((item, index) => {
+                                                    var idxToRemove = aData.indexOf(aData.at(item));
+                                                    aData.splice(idxToRemove, 1);
+                                                })
+            
+                                                me.byId("delvSchedTab").getModel().setProperty("/rows", aData);
+                                                me.byId("delvSchedTab").bindRows("/rows");
+                                                me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
+            
+                                                me.unLock();
+                                                Common.closeProcessingDialog(me);
+                                                MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_DELETED"]);
+                                            },
+                                            error: function () {
+                                                Common.closeProcessingDialog(me);
+                                            }
+                                        }) 
+                                    }
+                                    else { me.unLock(); }
                                 }
-                            }) 
+                            });
                         } 
                         else  {
+                            this.unLock();
                             MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_SEL_RECORD_TO_DELETE"]);
                         }
                     }
                     else {
+                        this.unLock();
                         MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DLV_DELETE_NOT_ALLOW"]);
                     }
                 }
                 else  {
+                    this.unLock();
                     MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_RECORD_TO_DELETE"]);
                 }
             }
@@ -2429,6 +2465,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         if (oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Type === "E"){
                             resolve(false);
                             MessageBox.information(oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Message);
+
+                            me.unLock();
                         }
                         else {
                             resolve(true);
@@ -2449,7 +2487,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK_SRV");
             var oParamLock = this._oLock[0];
             oParamLock["Lock_Unlock_Ind"] = "";
-
+            console.log(oParamLock)
             // Common.openProcessingDialog(this);
             oModelLock.create("/Lock_Unlock_DlvHdrSet", oParamLock, {
                 method: "POST",

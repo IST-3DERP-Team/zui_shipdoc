@@ -216,7 +216,8 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "INFO_NO_DATA_MODIFIED"}); 
                 oDDTextParam.push({CODE: "INFO_DLV_INVOICE_REQD"}); 
                 oDDTextParam.push({CODE: "INFO_DLV_INSUFFICIENT_STOCK"}); 
-                oDDTextParam.push({CODE: "INFO_CHECK_INVALID_DLVQTYBSE"}); 
+                oDDTextParam.push({CODE: "INFO_CHECK_INVALID_DLVQTYBSE"});
+                oDDTextParam.push({CODE: "CONF_DELETE_RECORDS"});
 
                 this._oModelCommon.create("/CaptionMsgSet", { CaptionMsgItems: oDDTextParam  }, {
                     method: "POST",
@@ -439,6 +440,24 @@ sap.ui.define([
                                 if (!(item.UPDATEDDT === null || item.UPDATEDDT === ""))
                                 { item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT)); }
     
+                                if (!(item.ETD === null || item.ETD === ""))
+                                { item.ETD = dateFormat.format(new Date(item.ETD)); }
+
+                                if (!(item.ETA === null || item.ETA === ""))
+                                { item.ETA = dateFormat.format(new Date(item.ETA)); }
+
+                                if (!(item.HBLDT === null || item.HBLDT === ""))
+                                { item.HBLDT = dateFormat.format(new Date(item.HBLDT)); }
+
+                                if (!(item.MBLDT === null || item.MBLDT === ""))
+                                { item.MBLDT = dateFormat.format(new Date(item.MBLDT)); }
+
+                                if (!(item.INVDT === null || item.INVDT === ""))
+                                { item.INVDT = dateFormat.format(new Date(item.INVDT)); }
+
+                                if (!(item.EXPLICDT === null || item.EXPLICDT === ""))
+                                { item.EXPLICDT = dateFormat.format(new Date(item.EXPLICDT)); }
+
                                 if (!(item.DELETED === null || item.DELETED === ""))
                                 { item.DELETED = true; }
                                 else { item.DELETED = false; }
