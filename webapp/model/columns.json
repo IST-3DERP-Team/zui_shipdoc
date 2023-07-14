@@ -19,7 +19,7 @@
             }
         },
         {"ColumnName": "SALESTERM", 
-            "ValueHelp": {"show": true, "items": {"path": "salesterm", "value": "SALESTERM", "text": "INCO1" },
+            "ValueHelp": {"show": true, "items": {"path": "salesterm", "value": "SALESTERM", "text": "DESCRIPTION" },
                 "SuggestionItems": {"path": "salesterm>/", "text": "{salesterm>SALESTERM}", "additionalText": "{salesterm>DESCRIPTION}", "maxSuggestionWidth": "300px"},
                 "columns": "tvh_salesterm"
             }
@@ -59,6 +59,12 @@
                 "SuggestionItems": {"path": "wtuom>/", "text": "{wtuom>UOM}", "additionalText": "{wtuom>DESCRIPTION}", "maxSuggestionWidth": "200px"},
                 "columns": "tvh_uom"
             }
+        },
+        {"ColumnName": "ACCTTYP", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "acctyp", "value": "ACCTTYP", "text": "DESC1"},
+                "SuggestionItems": {"path": "acctyp>/", "text": "{wtuom>ACCTTYP}", "additionalText": "{wtuom>DESC1}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_acctyp"
+            }
         }
     ],
     "tvh_issplnt": [
@@ -92,6 +98,11 @@
     "tvh_uom": [
         {"ColumnName": "UOM", "DataType": "STRING", "ColumnWidth": "100px", "Visible": true, "Key": true, "Value": false},
         {"ColumnName": "DESCRIPTION", "DataType": "STRING", "ColumnWidth": "300px", "Visible": true, "Key": false, "Value": true}
+    ],
+    "tvh_acctyp": [
+        {"ColumnName": "ACCTTYP", "DataType": "STRING", "ColumnWidth": "100px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "DESC1", "DataType": "STRING", "ColumnWidth": "300px", "Visible": true, "Key": false, "Value": true},
+        {"ColumnName": "DESC2", "DataType": "STRING", "ColumnWidth": "300px", "Visible": false, "Key": false, "Value": false}
     ]
 
 }

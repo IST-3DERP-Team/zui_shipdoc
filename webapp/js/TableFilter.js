@@ -386,6 +386,28 @@ sap.ui.define([
             })
 
             me._colFilters[sSourceTabId] = jQuery.extend(true, {}, oDialog.getModel().getData());
+            me.setActiveRowHighlightByTableId(sSourceTabId);
+
+            //additonal code
+            if (sSourceTabId === "mainHeaderTab") {
+                var vActiveRec = me.byId(sSourceTabId).getModel().getData().rows.filter((item,index) => index === 0)[0].DLVNO;
+
+                if (me.getView().getModel("ui").getProperty("/activeDlv") !== vActiveRec) {
+                    me.byId(sSourceTabId).getModel().getData().rows.forEach(item => {
+                        if (item.DLVNO === vActiveRec) { item.ACTIVE = "X"; }
+                        else { item.ACTIVE = ""; }
+                    });
+
+                    // me.setActiveRowHighlightByTableId(sSourceTabId);
+                    me.getView().getModel("ui").setProperty("/activeDlv", vActiveRec);
+                    me.getDetailData(false);
+                }
+
+                me.getView().getModel("counts").setProperty("/header", me.byId(sSourceTabId).getBinding("rows").aIndices.length);
+            }
+            else if (sSourceTabId === "mainDetailTab") {
+                me.getView().getModel("counts").setProperty("/detail", me.byId(sSourceTabId).getBinding("rows").aIndices.length);
+            }
         },
 
         onColFilterCancel: function(oEvent, oThis) {
@@ -485,6 +507,49 @@ sap.ui.define([
             // console.log(oFilter)
             me.byId(sSourceTabId).getBinding("rows").filter(oFilter, "Application");
             me._colFilters[sSourceTabId] = jQuery.extend(true, {}, oDialog.getModel().getData());
+
+            //additonal code
+            if (oFilter !== "") {
+                if (sSourceTabId === "mainHeaderTab") {
+                    if (me.byId(sSourceTabId).getBinding("rows").aIndices.length === 0) {
+                        me.getView().getModel("ui").setProperty("/activeDlv", '');
+                        me.getView().getModel("counts").setProperty("/header", 0);
+                        me.getView().getModel("counts").setProperty("/detail", 0);
+
+                        me.byId("detailTab").setModel(new JSONModel({
+                            rows: []
+                        }));
+                    }
+                    else {
+                        var vActiveRec = me.byId(sSourceTabId).getModel().getData().rows.filter((item,index) => index === me.byId(sSourceTabId).getBinding("rows").aIndices[0])[0].DLVNO;
+
+                        if (me.getView().getModel("ui").getProperty("/activeDlv") !== vActiveRec) {
+                            me.byId(sSourceTabId).getModel().getData().rows.forEach(item => {
+                                if (item.DLVNO === vActiveRec) { item.ACTIVE = "X"; }
+                                else { item.ACTIVE = ""; }
+                            });
+
+                            me.setActiveRowHighlightByTableId(sSourceTabId);
+                            me.getView().getModel("ui").setProperty("/activeDlv", vActiveRec);
+                            me.getDetailData(false);
+                        }
+
+                        me.getView().getModel("counts").setProperty("/header", me.byId(sSourceTabId).getBinding("rows").aIndices.length);
+                    }
+                }
+                else if (sSourceTabId === "mainDetailTab") {
+                    if (me.byId(sSourceTabId).getBinding("rows").aIndices.length === 0) {
+                        me.getView().getModel("counts").setProperty("/detail", 0);
+                    }
+                    else {
+                        me.getView().getModel("counts").setProperty("/detail", me.byId(sSourceTabId).getBinding("rows").aIndices.length);
+                        me.setActiveRowHighlightByTableId(sSourceTabId);
+                    }
+                }
+            }
+            else {
+                me.getView().getModel("counts").setProperty("/header", me.byId(sSourceTabId).getModel().getData().rows.length);
+            }
         },
 
         onFilterItemPress: function(oEvent, oThis) {
@@ -1032,9 +1097,78 @@ sap.ui.define([
         
                     me.byId(sTableId).getBinding("rows").filter(oFilter, "Application");
                     // me._colFilters[sTableId] = jQuery.extend(true, {}, oDialog.getModel().getData());
+
+                    //additonal code
+                    if (sTableId === "mainHeaderTab") {
+                        if (me.byId(sTableId).getBinding("rows").aIndices.length === 0) {
+                            me.getView().getModel("ui").setProperty("/activeDlv", '');
+                            me.getView().getModel("counts").setProperty("/header", 0);
+                            me.getView().getModel("counts").setProperty("/detail", 0);
+    
+                            me.byId("detailTab").setModel(new JSONModel({
+                                rows: []
+                            }));
+                        }
+                        else {
+                            var vActiveRec = me.byId(sTableId).getModel().getData().rows.filter((item,index) => index === me.byId(sTableId).getBinding("rows").aIndices[0])[0].DLVNO;
+    
+                            if (me.getView().getModel("ui").getProperty("/activeDlv") !== vActiveRec) {
+                                me.byId(sTableId).getModel().getData().rows.forEach(item => {
+                                    if (item.DLVNO === vActiveRec) { item.ACTIVE = "X"; }
+                                    else { item.ACTIVE = ""; }
+                                });
+    
+                                me.setActiveRowHighlightByTableId(sTableId);
+                                me.getView().getModel("ui").setProperty("/activeDlv", vActiveRec);
+                                me.getDetailData(false);
+                            }
+    
+                            me.getView().getModel("counts").setProperty("/header", me.byId(sTableId).getBinding("rows").aIndices.length);
+                        }
+                    }
+                    else {
+                        var vCount = "";
+
+                        if (sTableId === "mainDetailTab") { vCount = "/detail" }
+                        else if (sTableId === "delvSchedTab") { vCount = "/dlvsched" }
+                        else if (sTableId === "delvDtlTab") { vCount = "/dlvdtls" }
+                        else if (sTableId === "delvStatTab") { vCount = "/dlvstat" }
+
+                        if (me.byId(sTableId).getBinding("rows").aIndices.length === 0) {
+                            me.getView().getModel("counts").setProperty(vCount, 0);
+                        }
+                        else {
+                            me.getView().getModel("counts").setProperty(vCount, me.byId(sTableId).getBinding("rows").aIndices.length);
+                            me.setActiveRowHighlightByTableId(sTableId);
+                        }
+                    }
                 }
             }
         },
 
+        removeColFilters: function(sTableId, oThis) {
+            var me = oThis;
+            var oDialog = me._GenericFilterDialog;
+            
+            if (me._colFilters[sTableId] !== undefined) {
+                if (oDialog) {
+                    var aColumnItems = me._colFilters[sTableId].items;
+                    var oColumnValues = me._colFilters[sTableId].values;
+                    var oFilter = "";
+
+                    aColumnItems.forEach(item => {
+                        oColumnValues[item.ColumnName].forEach(val => val.Selected = true)
+                        item.isFiltered = false;
+                    })
+
+                    me.byId(sTableId).getBinding("rows").filter(oFilter, "Application");           
+                    oDialog.getContent()[0].getMasterPages()[0].getContent()[0].getItems().forEach(item => item.setIcon("sap-icon://text-align-justified"));
+
+                    me.byId(sTableId).getColumns().forEach(col => { 
+                        col.setProperty("filtered", false);
+                    })
+                }
+            }
+        }
 	};
 });

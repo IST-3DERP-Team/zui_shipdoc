@@ -7,7 +7,7 @@
         fragmentName="fragment1">
     <Dialog contentWidth="1000px" 
         contentHeight="515px"
-        title="Filter Criteria"
+        title="{ddtext>/FLTRCRIT}"
         resizable="true"
         draggable="true">
         <!-- <beginButton>
@@ -17,9 +17,9 @@
 			<Button text="Cancel" press=".onColFilterCancel"/>
 		</endButton> -->
         <buttons>
-            <Button type="Emphasized" text="OK" press="onColFilterConfirm" width="4rem" />
-            <Button text="Cancel" press="onColFilterCancel"/>
-            <Button text="Clear All Filters" press="onColFilterClear" >
+            <Button type="Emphasized" text="{ddtext>/OK}" tooltip="{ddtext>/OK}" press="onColFilterConfirm" width="4rem" />
+            <Button text="{ddtext>/CANCEL}" tooltip="{ddtext>/CANCEL}" press="onColFilterCancel"/>
+            <Button text="{ddtext>/CLRFLTRS}" tooltip="{ddtext>/CLRFLTRS}" press="onColFilterClear" >
                 <customData>
                     <core:CustomData key="Function" value="Clear" />
                 </customData>
@@ -33,7 +33,7 @@
                     showHeader="false"
                     class="sapUiStdPage">
                     <List items="{/items}" itemPress="onFilterItemPress" mode="SingleSelectMaster">
-                        <StandardListItem title="{ColumnLabel}" info="{ColumnInfo}" type="Active" selected="{selected}" icon="sap-icon://text-align-justified" />
+                        <StandardListItem title="{ColumnLabel}" info="{ColumnInfo}" tooltip="{ColumnLabel}" type="Active" selected="{selected}" icon="sap-icon://text-align-justified" />
                     </List>
                 </Page>
             </masterPages>
@@ -46,14 +46,14 @@
                     <VBox fitContainer="true">
                         <VBox height="35px">
                             <Toolbar>
-                                <Button icon="sap-icon://clear-filter" tooltip="Remove Filter" press="onRemoveColFilter" enabled="{/btnRemoveFilterEnable}"/>
+                                <Button icon="sap-icon://clear-filter" tooltip="{ddtext>/REMOVEFLTR}" press="onRemoveColFilter" enabled="{/btnRemoveFilterEnable}"/>
                                 <ToolbarSeparator />
                                 <RadioButton selected="{/selectVLF}" select="onSetUseColFilter">
                                     <customData>
                                         <core:CustomData key="FilterType" value="VLF" />
                                     </customData>        
                                 </RadioButton>
-                                <tnt:InfoLabel text="Value List" class="sapUiSmallMarginEnd cursorPointer">
+                                <tnt:InfoLabel text="{ddtext>/VALUELIST}" class="sapUiSmallMarginEnd cursorPointer">
                                     <tnt:customData>
                                         <core:CustomData key="FilterType" value="VLF" />
                                     </tnt:customData>
@@ -64,7 +64,7 @@
                                         <core:CustomData key="FilterType" value="UDF" />
                                     </customData>        
                                 </RadioButton>
-                                <tnt:InfoLabel text="User Defined" class="cursorPointer" visible="{/lblUDFVisible}" >
+                                <tnt:InfoLabel text="{ddtext>/USERDEF}" class="cursorPointer" visible="{/lblUDFVisible}" >
                                     <tnt:customData>
                                         <core:CustomData key="FilterType" value="UDF" />
                                     </tnt:customData>
@@ -84,7 +84,7 @@
                                         <ToolbarSpacer/>
                                         <ToolbarSeparator />
                                         <SearchField
-                                            placeholder="Search"
+                                            placeholder="{ddtext>/SEARCH}"
                                             value="{/searchValue}"
                                             search="onSearchFilterValue"
                                             visible="true"

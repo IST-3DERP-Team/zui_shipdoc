@@ -4,8 +4,8 @@
 			<Text text="{/Text}"/>
 		</Panel>
 		<buttons>
-			<Button text="Yes" press="onCloseConfirmDialog"/>
-			<Button text="Cancel" press="onCancelConfirmDialog"/>
+			<Button text="{ddtext>/YES}" press="onCloseConfirmDialog"/>
+			<Button text="{ddtext>/CANCEL}" press="onCancelConfirmDialog"/>
 		</buttons>
 	</Dialog>
 </core:FragmentDefinition>

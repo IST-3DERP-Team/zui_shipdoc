@@ -6,8 +6,8 @@
         id="fragment-adddelvsched" 
         fragmentName="adddelvsched">
     <Dialog contentWidth="1301px"
-        contentHeight="500px"
-        title="Add Delivery Schedule"
+        contentHeight="505px"
+        title="{ddtext>/AVAILDLVSCHD} ({/rowCount})"
         resizable="true"
         draggable="true">
         <content>
@@ -16,90 +16,90 @@
                     rows="{/rows}"
                     selectionMode="MultiToggle"
                     showColumnVisibilityMenu="true"
-                    visibleRowCount="13"
-                    paste="onPaste"
+                    enableColumnFreeze="true"
+                    visibleRowCountMode="Auto"
                     class="sapUiTinyMargin">
                     <uit:columns>
-                        <uit:Column width="120px" sortProperty="IONO" filterProperty="IONO">
-                            <Label text="{ddtext>/IONO}" />
+                        <uit:Column width="120px" sortProperty="IONO">
+                            <Label text="{ddtext>/IONO}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{IONO}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="150px">
-                            <Label text="{ddtext>/IODESC}" />
+                        <uit:Column width="150px" sortProperty="IODESC">
+                            <Label text="{ddtext>/IODESC}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{IODESC}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="100px">
-                            <Label text="{ddtext>/DLVSEQ}" />
+                        <uit:Column width="80px" sortProperty="DLVSEQ">
+                            <Label text="{ddtext>/DLVSEQ}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{DLVSEQ}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/CPONO}" />
+                        <uit:Column width="120px" sortProperty="CPONO">
+                            <Label text="{ddtext>/CPONO}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{CPONO}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/CUSTSTYLE}" />
+                        <uit:Column width="200px" sortProperty="CUSTSTYLE">
+                            <Label text="{ddtext>/CUSTSTYLE}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{CUSTSTYLE}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/DLVDT}" />
+                        <uit:Column width="120px" sortProperty="DLVDT">
+                            <Label text="{ddtext>/DLVDT}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{DLVDT}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/REVDLVDT}" />
+                        <uit:Column width="120px" sortProperty="REVDLVDT">
+                            <Label text="{ddtext>/REVDLVDT}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{REVDLVDT}" wrapping="false" />
                             </uit:template>
                         </uit:Column>   
-                        <uit:Column width="125px" hAlign="End">
-                            <Label text="{ddtext>/ORDERQTY}" />
+                        <uit:Column width="125px" hAlign="End" sortProperty="ORDERQTY">
+                            <Label text="{ddtext>/ORDERQTY}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{ORDERQTY}" wrapping="false" />
                             </uit:template>
                         </uit:Column>                                     
-                        <uit:Column width="125px" hAlign="End">
-                            <Label text="{ddtext>/REVORDERQTY}" />
+                        <uit:Column width="125px" hAlign="End" sortProperty="REVORDERQTY">
+                            <Label text="{ddtext>/REVORDERQTY}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{REVORDERQTY}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="100px">
-                            <Label text="{ddtext>/CPOITEM}" />
+                        <uit:Column width="80px" sortProperty="CPOITEM">
+                            <Label text="{ddtext>/CPOITEM}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{CPOITEM}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/CPOREV}" />
+                        <uit:Column width="80px" sortProperty="CPOREV">
+                            <Label text="{ddtext>/CPOREV}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{CPOREV}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/CPODT}" />
+                        <uit:Column width="120px" sortProperty="CPODT">
+                            <Label text="{ddtext>/CPODT}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{CPODT}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/CUSTSHIPTO}" />
+                        <uit:Column width="120px" sortProperty="CUSTSHIPTO">
+                            <Label text="{ddtext>/CUSTSHIPTO}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{CUSTSHIPTO}" wrapping="false" />
                             </uit:template>
                         </uit:Column>
-                        <uit:Column width="120px">
-                            <Label text="{ddtext>/SOLDTOCUST}" />
+                        <uit:Column width="120px" sortProperty="SOLDTOCUST">
+                            <Label text="{ddtext>/SOLDTOCUST}" wrapping="true"/>
                             <uit:template>
                                 <Text text="{SOLDTOCUST}" wrapping="false" />
                             </uit:template>
@@ -109,8 +109,8 @@
             <!-- </VBox> -->
         </content> 
         <buttons>
-            <Button id="btnAddDelvSched" icon="sap-icon://add" text="{ddtext>/ADD}" tooltip="{ddtext>/ADD}" press="onAddDelvSched" visible="true" />
-            <Button id="btnCloseDelvSched" icon="sap-icon://decline" text="{ddtext>/CLOSE}" tooltip="{ddtext>/CLOSE}" press="onCloseDelvSched" visible="true" />
+            <Button id="btnAddDelvSched" icon="sap-icon://accept" text="{ddtext>/SUBMIT}" tooltip="{ddtext>/SUBMIT}" press="onAddDelvSched" visible="true" />
+            <Button id="btnCloseDelvSched" icon="sap-icon://sys-cancel" text="{ddtext>/CANCEL}" tooltip="{ddtext>/CANCEL}" press="onCloseDelvSched" visible="true" />
         </buttons>        
     </Dialog>
 </core:FragmentDefinition>

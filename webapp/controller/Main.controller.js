@@ -23,8 +23,8 @@ sap.ui.define([
             onInit: function () {
                 me = this;
 
-                this._dataMode = "LOAD";
-                this._sActiveTable = "mainHeaderTab";
+                this._dataMode = "READ";
+                this._sActiveTable = "mainHeaderTab"; 
                 // this._tableRendered = "mainHeaderTab";
                 this._bHdrChanged = false;
                 this._bDtlChanged = false;
@@ -37,13 +37,16 @@ sap.ui.define([
                 this._aMultiFiltersBeforeChange = [];
                 this._aFilterableColumns = {};
                 this._aColFilters = [];
-                this._aColSorters = [];     
+                this._aColSorters = [];
                 this._oModel = this.getOwnerComponent().getModel();
                 this._oModelCommon = this.getOwnerComponent().getModel("ZGW_3DERP_COMMON_SRV");
                 this._tableFilter = TableFilter;
                 this._colFilters = {};
                 this._oLock = [];
-                console.log(this._oLock)
+
+                this.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", this._dataMode);
+                this.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", this._oLock);
+
                 Common.openLoadingDialog(this);
 
                 this.getOwnerComponent().getModel("UI_MODEL").setData({
@@ -52,6 +55,10 @@ sap.ui.define([
                     action: "READ",
                     refresh: false
                 });
+
+                this.getView().setModel(new JSONModel({
+                    activeDlv: ""
+                }), "ui");
 
                 this.getView().setModel(new JSONModel({
                     header: 0,
@@ -183,6 +190,23 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "DESTCD"});
                 oDDTextParam.push({CODE: "CONSIGNCD"});
                 oDDTextParam.push({CODE: "ADDR1"});
+                oDDTextParam.push({CODE: "DLVDOCS"});
+                oDDTextParam.push({CODE: "DLVSCHD"});
+                oDDTextParam.push({CODE: "DLVHDR"});
+                oDDTextParam.push({CODE: "SHPDTLS"});
+                oDDTextParam.push({CODE: "DLVDTLS"});
+                oDDTextParam.push({CODE: "DLVSTATUS"});
+                oDDTextParam.push({CODE: "AVAILDLVSCHD"});
+                oDDTextParam.push({CODE: "FLTRCRIT"});
+                oDDTextParam.push({CODE: "OK"});
+                oDDTextParam.push({CODE: "YES"});
+                oDDTextParam.push({CODE: "CLRFLTRS"});
+                oDDTextParam.push({CODE: "REMOVEFLTR"});
+                oDDTextParam.push({CODE: "VALUELIST"});
+                oDDTextParam.push({CODE: "USERDEF"});
+                oDDTextParam.push({CODE: "SEARCH"});
+                oDDTextParam.push({CODE: "ITEMS"});
+                oDDTextParam.push({CODE: "SUBMIT"});
 
                 oDDTextParam.push({CODE: "INFO_NO_RECORD_TO_PROC"});
                 oDDTextParam.push({CODE: "INFO_NO_SEL_RECORD_TO_PROC"});
@@ -218,6 +242,7 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "INFO_DLV_INSUFFICIENT_STOCK"}); 
                 oDDTextParam.push({CODE: "INFO_CHECK_INVALID_DLVQTYBSE"});
                 oDDTextParam.push({CODE: "CONF_DELETE_RECORDS"});
+                oDDTextParam.push({CODE: "INFO_DLV_ALREADY_COMPLETED"});
 
                 this._oModelCommon.create("/CaptionMsgSet", { CaptionMsgItems: oDDTextParam  }, {
                     method: "POST",
@@ -277,6 +302,12 @@ sap.ui.define([
                             if (me.getOwnerComponent().getModel("UI_MODEL").getData().refresh) {
                                 me.getHeaderData();
                             }
+
+                            if (me.getOwnerComponent().getModel("LOCK_MODEL").getData().item !== undefined) { me._oLock = me.getOwnerComponent().getModel("LOCK_MODEL").getData().item; }
+
+                            if (me._oLock.length > 0) {
+                                me.unLock();
+                            }
                         }
                     }, oView);
                 }
@@ -305,18 +336,6 @@ sap.ui.define([
                     error: function (err) { }
                 }); 
 
-                var oView = this.getView();
-                oView.addEventDelegate({
-                    onAfterShow: function(oEvent){
-                        // sap.ui.getCore().byId("backBtn").mEventRegistry.press[0].fFunction = that._fBackButton;
-                        if (me.getOwnerComponent().getModel("LOCK_MODEL").getData().item !== undefined) { me._oLock = me.getOwnerComponent().getModel("LOCK_MODEL").getData().item; }
-
-                        if (me._oLock.length > 0) {
-                            me.unLock();
-                        }
-                    }
-                }, oView);
-
                 this._oModel.read("/IssPlantSHSet", {
                     success: function (oData, oResponse) {
                         me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/issplant", oData.results);
@@ -333,6 +352,7 @@ sap.ui.define([
     
                 this._oModel.read("/SalesTermSHSet", {
                     success: function (oData, oResponse) {
+                        me.getView().setModel(new JSONModel(oData.results), "salesterm");
                         me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/salesterm", oData.results);
                     },
                     error: function (err) { }
@@ -354,6 +374,7 @@ sap.ui.define([
     
                 this._oModel.read("/DestSHSet", {
                     success: function (oData, oResponse) {
+                        me.getView().setModel(new JSONModel(oData.results), "dest");
                         me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/dest", oData.results);
                     },
                     error: function (err) { }
@@ -368,6 +389,52 @@ sap.ui.define([
                     },
                     error: function (err) { }
                 });
+                
+                this._oModel.read("/AcctTypeSHSet", {
+                    success: function (oData, oResponse) {
+                        me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/acctyp", oData.results);
+                    },
+                    error: function (err) { }
+                });
+
+                // window.addEventListener('pagehide', this.exitFunction(), false);
+                // window.addEventListener('onbeforeunload', this.exitFunction(), false);
+
+                // var oView = this.getView();
+
+                // oView.addEventDelegate({
+                //     onBeforeHide: function (oEvent) {
+                //         console.log("Main onBeforeHide");
+                //         // alert("onBeforeHide")
+                //         $(window).off('hashchange');
+                //     },
+
+                //     // saphome: function (oEvent) {
+                //     //     console.log("Main saphome");
+                //     // },
+                // }, oView);
+
+                // this.getOwnerComponent().getRouter().stop();
+                // this.m_strHref = window.location.href;
+
+                // $(window).off('hashchange').on('hashchange', function (e) {
+                //     console.log("hashchange")
+                //     // alert("hashchange")
+                //     if (me.m_bSelfURLSetting) {
+                //         me.m_bSelfURLSetting = false;
+                //         return;
+                //     }
+            
+                //     if (me._bHeaderChanged || me._bDelvDtlChanged) {
+                //         me.unLock();
+                //     }
+                    
+                //     me.getOwnerComponent().getRouter().initialize(false);
+                // });
+            },
+
+            exitFunction: function(oEvent) {
+                console.log("exit")
             },
 
             onSearch: function () {
@@ -380,7 +447,11 @@ sap.ui.define([
                     
                     setTimeout(() => {
                         me.getDynamicColumns("SHPDOCDLVSCHD", "Z3DERP_SHPDCDLVS", "mainDetailTab");
-                    }, 100);                    
+                    }, 100);   
+                    
+                    setTimeout(() => {
+                        me.getDynamicColumns("SHPDOCHDR", "Z3DERP_SHPDCDLVH", "");
+                    }, 100);
                 }
 
                 this.getHeaderData();
@@ -469,6 +540,7 @@ sap.ui.define([
                                 if (index === 0) {
                                     item.ACTIVE = "X";
                                     me.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv", item.DLVNO);
+                                    me.getView().getModel("ui").setProperty("/activeDlv", item.DLVNO);
                                 }
                                 else { item.ACTIVE = ""; }
                             });
@@ -558,7 +630,7 @@ sap.ui.define([
                 var oSmartFilter = this.getView().byId("smartFilterBar");
                 oSmartFilter.setModel(oModel);
             },
-
+            
             getDynamicColumns(arg1, arg2, arg3) {
                 var sType = arg1;
                 var sTabName = arg2;
@@ -573,28 +645,33 @@ sap.ui.define([
 
                 this._oModelCommon.read("/ColumnsSet", {
                     success: function (oData) {
-                        if (oData.results.length > 0) {
-                            me._aColumns[sTabId.replace("Tab", "")] = oData.results;
-                            me.setTableColumns(sTabId, oData.results);
-                            me.byId("btnAdd").setEnabled(true);
-                            me.byId("btnEdit").setEnabled(true);
-                            me.byId("btnRefreshHdr").setEnabled(true);
-                            me.byId("btnRefreshDtl").setEnabled(true);
+                        if (sType === "SHPDOCHDR") {
+                            me.getOwnerComponent().getModel("COLUMNS_MODEL").setProperty("/delvHdr", oData.results);
                         }
                         else {
-                            // MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_LAYOUT"]);
-
-                            var oTable = me.byId(sTabId);
-                            if (oTable.getColumns().length > 0) {
-                                oTable.getModel().setProperty("/columns", []);
-                                me.getView().getModel("counts").setProperty("/header", 0);
-                                me.getView().getModel("counts").setProperty("/detail", 0);
-                            }   
-
-                            me.byId("btnAdd").setEnabled(false);
-                            me.byId("btnEdit").setEnabled(false);
-                            me.byId("btnRefreshHdr").setEnabled(false);   
-                            me.byId("btnRefreshDtl").setEnabled(false);                      
+                            if (oData.results.length > 0) {
+                                me._aColumns[sTabId.replace("Tab", "")] = oData.results;
+                                me.setTableColumns(sTabId, oData.results);
+                                me.byId("btnAdd").setEnabled(true);
+                                me.byId("btnEdit").setEnabled(true);
+                                me.byId("btnRefreshHdr").setEnabled(true);
+                                me.byId("btnRefreshDtl").setEnabled(true);
+                            }
+                            else {
+                                // MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_LAYOUT"]);
+    
+                                var oTable = me.byId(sTabId);
+                                if (oTable.getColumns().length > 0) {
+                                    oTable.getModel().setProperty("/columns", []);
+                                    me.getView().getModel("counts").setProperty("/header", 0);
+                                    me.getView().getModel("counts").setProperty("/detail", 0);
+                                }   
+    
+                                me.byId("btnAdd").setEnabled(false);
+                                me.byId("btnEdit").setEnabled(false);
+                                me.byId("btnRefreshHdr").setEnabled(false);   
+                                me.byId("btnRefreshDtl").setEnabled(false);                      
+                            }
                         }
                     },
                     error: function (err) { }
@@ -635,6 +712,36 @@ sap.ui.define([
 
                                 if (oValue && oValue.length > 0) {
                                     return oValue[0].DESCRIPTION + " (" + sColumnId + ")";
+                                }
+                                else return sColumnId;
+                            }
+                        });
+                    }
+                    else if (sColumnId === "SALESTERM") {
+                        oText.bindText({  
+                            parts: [  
+                                { path: sColumnId }
+                            ],  
+                            formatter: function(sColumnId) {
+                                var oValue = me.getView().getModel("salesterm").getData().filter(v => v.SALESTERM === sColumnId);
+
+                                if (oValue && oValue.length > 0) {
+                                    return oValue[0].DESCRIPTION + " (" + sColumnId + ")";
+                                }
+                                else return sColumnId;
+                            }
+                        });
+                    }
+                    else if (sColumnId === "DEST") {
+                        oText.bindText({  
+                            parts: [  
+                                { path: sColumnId }
+                            ],  
+                            formatter: function(sColumnId) {
+                                var oValue = me.getView().getModel("dest").getData().filter(v => v.DESTCD === sColumnId);
+
+                                if (oValue && oValue.length > 0) {
+                                    return oValue[0].DESC1 + " (" + sColumnId + ")";
                                 }
                                 else return sColumnId;
                             }
@@ -686,9 +793,20 @@ sap.ui.define([
                 TableFilter.updateColumnMenu(sTabId, this);
             },
 
-            onCreate: function (oEvent) {
-                this.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", "NEW");
-                this.navToDetail();
+            onCreate: function (oEvent) {      
+                var oTable = oEvent.getSource().oParent.oParent;
+                var sTabId = oTable.sId.split("--")[oTable.sId.split("--").length - 1];
+                this._sActiveTable = sTabId;
+                this.createData();
+            },
+
+            createData() {
+                if (this._dataMode === "READ") {
+                    if (this._sActiveTable === "mainHeaderTab") {
+                        this.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", "NEW");
+                        this.navToDetail();
+                    }
+                }
             },
 
             onEdit: function (oEvent) {
@@ -717,18 +835,6 @@ sap.ui.define([
                             me.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", "EDIT");
                             me.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", me._oLock);
                             me.navToDetail();
-
-                            // if (me.getOwnerComponent().getModel("UI_MODEL").getData().action !== "NEW") {
-                            //     me.getOwnerComponent().getModel("DELVDATA_MODEL").setData({
-                            //         header: me.byId("mainHeaderTab").getModel().getData().rows.filter(item => item.DLVNO === me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv)[0],
-                            //         detail: me.byId("mainDetailTab").getModel().getData().rows.filter(item => item.DLVNO === me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv),
-                            //     })
-                            // }
-    
-                            // me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", false);
-    
-                            // var oRouter = sap.ui.core.UIComponent.getRouterFor(me);
-                            // oRouter.navTo("RouteDetail");
                         }
 
                         Common.closeProcessingDialog(me);
@@ -830,7 +936,9 @@ sap.ui.define([
 
                         if (vCurrDlv !== vPrevDlv) {
                             this.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv", vCurrDlv);
+                            this.getView().getModel("ui").setProperty("/activeDlv", vCurrDlv);
                             this.getDetailData(false);
+                            TableFilter.removeColFilters("mainDetailTab", this);
                         }
 
                         if (this._dataMode === "READ") this._sActiveTable = "mainHeaderTab";
@@ -854,10 +962,19 @@ sap.ui.define([
             onKeyUp(oEvent) {
                 if ((oEvent.key === "ArrowUp" || oEvent.key === "ArrowDown") && oEvent.srcControl.sParentAggregationName === "rows") {
                     var oTable = this.byId(oEvent.srcControl.sId).oParent;
+                    var sRowPath = this.byId(oEvent.srcControl.sId).getBindingContext() !== null ? this.byId(oEvent.srcControl.sId).getBindingContext().sPath : "";
+
+                    if (oTable.getId().indexOf("mainHeaderTab") >= 0) {
+                        var oRow = oTable.getModel().getProperty(sRowPath);
+
+                        me.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv"    , oRow.DLVNO);
+                        this.getView().getModel("ui").setProperty("/activeDlv", oRow.DLVNO);
+                        this.getDetailData(false);
+
+                        TableFilter.removeColFilters("mainDetailTab", this);
+                    }
 
                     if (this.byId(oEvent.srcControl.sId).getBindingContext()) {
-                        var sRowPath = this.byId(oEvent.srcControl.sId).getBindingContext().sPath;
-
                         oTable.getModel().getData().rows.forEach(row => row.ACTIVE = "");
                         oTable.getModel().setProperty(sRowPath + "/ACTIVE", "X");
 
@@ -886,50 +1003,7 @@ sap.ui.define([
                 me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", false);
 
                 var oRouter = sap.ui.core.UIComponent.getRouterFor(me);
-                oRouter.navTo("RouteDetail");
- 
-                // var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK_SRV");
-
-                // var oParamLock = {
-                //     Dlvno: this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv,
-                //     Lock_Unlock_Ind: "X",
-                //     IV_Count: 900,
-                //     N_LOCK_UNLOCK_DLVHDR_RET: [],
-                //     N_LOCK_UNLOCK_DLVHDR_MSG: []
-                // }
-
-                // this._oLock.push(oParamLock);
-
-                // Common.openProcessingDialog(this);
-                // oModelLock.create("/Lock_Unlock_DlvHdrSet", oParamLock, {
-                //     method: "POST",
-                //     success: function(oData, oResponse) {
-                //         console.log("Lock_Unlock_DlvHdrSet", oData);
-
-                //         if (oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Type === "E"){
-                //             MessageBox.information(oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Message);
-                //         }
-                //         else {
-                //             if (me.getOwnerComponent().getModel("UI_MODEL").getData().action !== "NEW") {
-                //                 me.getOwnerComponent().getModel("DELVDATA_MODEL").setData({
-                //                     header: me.byId("mainHeaderTab").getModel().getData().rows.filter(item => item.DLVNO === me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv)[0],
-                //                     detail: me.byId("mainDetailTab").getModel().getData().rows.filter(item => item.DLVNO === me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv),
-                //                 })
-                //             }
-    
-                //             me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", false);
-    
-                //             var oRouter = sap.ui.core.UIComponent.getRouterFor(me);
-                //             oRouter.navTo("RouteDetail");
-                //         }
-
-                //         Common.closeProcessingDialog(me);
-                //     },
-                //     error: function(err) {
-                //         MessageBox.error(err);
-                //         Common.closeProcessingDialog(me);
-                //     }
-                // });  
+                oRouter.navTo("RouteDetail"); 
             },
 
             setColumnFilters(sTable) {
@@ -974,12 +1048,56 @@ sap.ui.define([
                         // console.log("Lock_Unlock_DlvHdrSet", oData);
                         // Common.closeProcessingDialog(me);
                         me._oLock = [];
+                        me.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", me._oLock);
                     },
                     error: function(err) {
                         MessageBox.error(err);
                         // Common.closeProcessingDialog(me);
                     }
                 });                 
+            },
+
+            onFirstVisibleRowChanged: function (oEvent) {
+                var oTable = oEvent.getSource();
+                var sTabId = oTable.sId.split("--")[oTable.sId.split("--").length - 1];
+                this._sActiveTable = sTabId;
+
+                setTimeout(() => {
+                    var oData = oTable.getModel().getData().rows;
+                    var iStartIndex = oTable.getBinding("rows").iLastStartIndex;
+                    var iLength = oTable.getBinding("rows").iLastLength + iStartIndex;
+
+                    if (oTable.getBinding("rows").aIndices.length > 0) {
+                        for (var i = iStartIndex; i < iLength; i++) {
+                            var iDataIndex = oTable.getBinding("rows").aIndices.filter((fItem, fIndex) => fIndex === i);
+    
+                            if (oData[iDataIndex].ACTIVE === "X") oTable.getRows()[iStartIndex === 0 ? i : i - iStartIndex].addStyleClass("activeRow");
+                            else oTable.getRows()[iStartIndex === 0 ? i : i - iStartIndex].removeStyleClass("activeRow");
+                        }
+                    }
+                    else {
+                        for (var i = iStartIndex; i < iLength; i++) {
+                            if (oData[i].ACTIVE === "X") oTable.getRows()[iStartIndex === 0 ? i : i - iStartIndex].addStyleClass("activeRow");
+                            else oTable.getRows()[iStartIndex === 0 ? i : i - iStartIndex].removeStyleClass("activeRow");
+                        }
+                    }
+                }, 1);
+            },
+
+            onColumnUpdated: function (oEvent) {
+                var oTable = oEvent.getSource();
+                var sTabId = oTable.sId.split("--")[oTable.sId.split("--").length - 1];
+                this._sActiveTable = sTabId;
+
+                this.setActiveRowHighlightByTableId(sTabId);
+            },
+
+            onSort: function(oEvent) {
+                var oTable = oEvent.getSource();
+                var sTabId = oTable.sId.split("--")[oTable.sId.split("--").length - 1];
+                this._sActiveTable = sTabId;
+
+                this.setActiveRowHighlightByTableId(sTabId);
             },
 
             //******************************************* */
