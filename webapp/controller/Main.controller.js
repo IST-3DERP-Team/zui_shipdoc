@@ -243,6 +243,7 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "INFO_CHECK_INVALID_DLVQTYBSE"});
                 oDDTextParam.push({CODE: "CONF_DELETE_RECORDS"});
                 oDDTextParam.push({CODE: "INFO_DLV_ALREADY_COMPLETED"});
+                oDDTextParam.push({CODE: "CONFIRM_SAVE_CHANGE"});
 
                 this._oModelCommon.create("/CaptionMsgSet", { CaptionMsgItems: oDDTextParam  }, {
                     method: "POST",
@@ -790,6 +791,66 @@ sap.ui.define([
                     });
                 });
 
+                //date/number sorting
+                oTable.attachSort(function(oEvent) {
+                    var sPath = oEvent.getParameter("column").getSortProperty();
+                    var bDescending = false;
+                    
+                    //remove sort icon of currently sorted column
+                    oTable.getColumns().forEach(col => {
+                        if (col.getSorted()) {
+                            col.setSorted(false);
+                        }
+                    })
+
+                    oEvent.getParameter("column").setSorted(true); //sort icon initiator
+
+                    if (oEvent.getParameter("sortOrder") === "Descending") {
+                        bDescending = true;
+                        oEvent.getParameter("column").setSortOrder("Descending") //sort icon Descending
+                    }
+                    else {
+                        oEvent.getParameter("column").setSortOrder("Ascending") //sort icon Ascending
+                    }
+
+                    var oSorter = new sap.ui.model.Sorter(sPath, bDescending ); //sorter(columnData, If Ascending(false) or Descending(True))
+                    var oColumn = oColumns.filter(fItem => fItem.ColumnName === oEvent.getParameter("column").getProperty("sortProperty"));
+                    var columnType = oColumn[0].DataType;
+
+                    if (columnType === "DATETIME") {
+                        oSorter.fnCompare = function(a, b) {
+                            // parse to Date object
+                            var aDate = new Date(a);
+                            var bDate = new Date(b);
+
+                            if (bDate === null) { return -1; }
+                            if (aDate === null) { return 1; }
+                            if (aDate < bDate) { return -1; }
+                            if (aDate > bDate) { return 1; }
+
+                            return 0;
+                        };
+                    }
+                    else if (columnType === "NUMBER") {
+                        oSorter.fnCompare = function(a, b) {
+                            // parse to Date object
+                            var aNumber = +a;
+                            var bNumber = +b;
+
+                            if (bNumber === null) { return -1; }
+                            if (aNumber === null) { return 1; }
+                            if (aNumber < bNumber) { return -1; }
+                            if (aNumber > bNumber) { return 1; }
+
+                            return 0;
+                        };
+                    }
+                    
+                    oTable.getBinding('rows').sort(oSorter);
+                    // prevent internal sorting by table
+                    oEvent.preventDefault();
+                });
+
                 TableFilter.updateColumnMenu(sTabId, this);
             },
 
@@ -938,6 +999,16 @@ sap.ui.define([
                             this.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv", vCurrDlv);
                             this.getView().getModel("ui").setProperty("/activeDlv", vCurrDlv);
                             this.getDetailData(false);
+
+                            var oTableDetail = this.byId("mainDetailTab");
+                            var oColumns = oTableDetail.getColumns();
+
+                            for (var i = 0, l = oColumns.length; i < l; i++) {
+                                if (oColumns[i].getSorted()) {
+                                    oColumns[i].setSorted(false);
+                                }
+                            }
+                            
                             TableFilter.removeColFilters("mainDetailTab", this);
                         }
 
@@ -971,6 +1042,15 @@ sap.ui.define([
                         this.getView().getModel("ui").setProperty("/activeDlv", oRow.DLVNO);
                         this.getDetailData(false);
 
+                        var oTableDetail = this.byId("mainDetailTab");
+                        var oColumns = oTableDetail.getColumns();
+
+                        for (var i = 0, l = oColumns.length; i < l; i++) {
+                            if (oColumns[i].getSorted()) {
+                                oColumns[i].setSorted(false);
+                            }
+                        }
+                        
                         TableFilter.removeColFilters("mainDetailTab", this);
                     }
 

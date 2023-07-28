@@ -26,35 +26,30 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             this._tableFilter = TableFilter;
 
             var oView = this.getView();
-
             oView.addEventDelegate({
                 onBeforeHide: function(oEvent) {
-                    console.log("Detail onBeforeHide");
-                    me.unLock();
-                    // alert("onBeforeHide")
-                    // $(window).off('hashchange');
+                    console.log("onBack");
+                    if (me._oLock.length > 0) { me.unLock(); }
                 },
-
-                // onBeforeUnload: function(oEvent) {
-                //     console.log("Detail onBeforeUnload");
-                //     me.unLock();
-                // }
             }, oView);
 
-            window.addEventListener('beforeunload', (oEvent) => {
-                // var oLock = me._oLock;
-                // me.unLock();
-
-                // var oInterval = setInterval(() => {
-                //     if (me._oLock.length === 0) {
-                //         me._oLock = oLock;
-                //         me.lock(me);
-                //         clearInterval(oInterval); 
-                //     }
-                // }, 1000);
-
-                console.log(oEvent);
-            });
+            // window.addEventListener('beforeunload', (oEvent) => {
+            //     // console.log(oEvent);
+            //     oEvent.preventDefault();
+            //     oEvent.returnValue = "";
+            //     // if (sap.ushell.Container.getDirtyFlag()) {
+            //         MessageBox.confirm(me.getView().getModel("ddtext").getData()["CONFIRM_SAVE_CHANGE"], {
+            //             actions: ["Yes", "No"],
+            //             onClose: function (sAction) {
+            //                 if (sAction === "Yes") {
+            //                     oEvent.returnValue = "";
+            //                     me.unLock();
+            //                 }
+            //                 else { me.unLock(); }
+            //             }
+            //         });
+            //     // }
+            // });
 
             const route = this.getOwnerComponent().getRouter().getRoute("RouteDetail");
             route.attachPatternMatched(this.onPatternMatched, this);
@@ -444,9 +439,9 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             // this.setRowReadMode("detail");            
         },
 
-        onExit: async function(oEvent) {
-            console.log("detail onExit");
-            await this.asyncUnLock(this);
+        onExit: function(oEvent) {
+            console.log("onAppExit");
+            if (me._oLock.length > 0) { me.unLock(); }
         },
 
         getColumnProp: async function() {
@@ -485,7 +480,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                                     item.DataType = "BOOLEAN";
                                 }
                             })
-                            console.log(oData.results)
                         }
 
                         if (oData.results.length > 0) {
@@ -589,6 +583,65 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         sortOrder: ((sColumnSorted === true) ? sColumnSortOrder : "Ascending" ),
                     });
                 }
+            });
+
+            //date/number sorting
+            oTable.attachSort(function(oEvent) {
+                var sPath = oEvent.getParameter("column").getSortProperty();
+                var bDescending = false;
+                
+                oTable.getColumns().forEach(col => {
+                    if (col.getSorted()) {
+                        col.setSorted(false);
+                    }
+                })
+                
+                oEvent.getParameter("column").setSorted(true); //sort icon initiator
+
+                if (oEvent.getParameter("sortOrder") === "Descending") {
+                    bDescending = true;
+                    oEvent.getParameter("column").setSortOrder("Descending") //sort icon Descending
+                }
+                else {
+                    oEvent.getParameter("column").setSortOrder("Ascending") //sort icon Ascending
+                }
+
+                var oSorter = new sap.ui.model.Sorter(sPath, bDescending ); //sorter(columnData, If Ascending(false) or Descending(True))
+                var oColumn = oColumns.filter(fItem => fItem.ColumnName === oEvent.getParameter("column").getProperty("sortProperty"));
+                var columnType = oColumn[0].DataType;
+
+                if (columnType === "DATETIME") {
+                    oSorter.fnCompare = function(a, b) {
+                        // parse to Date object
+                        var aDate = new Date(a);
+                        var bDate = new Date(b);
+
+                        if (bDate === null) { return -1; }
+                        if (aDate === null) { return 1; }
+                        if (aDate < bDate) { return -1; }
+                        if (aDate > bDate) { return 1; }
+
+                        return 0;
+                    };
+                }
+                else if (columnType === "NUMBER") {
+                    oSorter.fnCompare = function(a, b) {
+                        // parse to Date object
+                        var aNumber = +a;
+                        var bNumber = +b;
+
+                        if (bNumber === null) { return -1; }
+                        if (aNumber === null) { return 1; }
+                        if (aNumber < bNumber) { return -1; }
+                        if (aNumber > bNumber) { return 1; }
+
+                        return 0;
+                    };
+                }
+                
+                oTable.getBinding('rows').sort(oSorter);
+                // prevent internal sorting by table
+                oEvent.preventDefault();
             });
 
             TableFilter.updateColumnMenu(sTabId, this);
