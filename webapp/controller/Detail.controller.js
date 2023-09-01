@@ -28,28 +28,46 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             var oView = this.getView();
             oView.addEventDelegate({
                 onBeforeHide: function(oEvent) {
-                    console.log("onBack");
                     if (me._oLock.length > 0) { me.unLock(); }
                 },
             }, oView);
 
-            // window.addEventListener('beforeunload', (oEvent) => {
-            //     // console.log(oEvent);
-            //     oEvent.preventDefault();
-            //     oEvent.returnValue = "";
-            //     // if (sap.ushell.Container.getDirtyFlag()) {
-            //         MessageBox.confirm(me.getView().getModel("ddtext").getData()["CONFIRM_SAVE_CHANGE"], {
-            //             actions: ["Yes", "No"],
-            //             onClose: function (sAction) {
-            //                 if (sAction === "Yes") {
-            //                     oEvent.returnValue = "";
-            //                     me.unLock();
-            //                 }
-            //                 else { me.unLock(); }
-            //             }
-            //         });
-            //     // }
-            // });
+
+            var oTableEventDelegate = {
+                onkeyup: function (oEvent) {
+                    me.onKeyUp(oEvent);
+                },
+
+                onAfterRendering: function (oEvent) {
+                    var oControl = oEvent.srcControl;
+                    var sTabId = oControl.sId.split("--")[oControl.sId.split("--").length - 1];
+
+                    if (sTabId.substr(sTabId.length - 3) === "Tab") me._tableRendered = sTabId;
+                    else me._tableRendered = "";
+
+                    me.onAfterTableRendering();
+                },
+
+                onclick: function(oEvent) {
+                    me.onTableClick(oEvent);
+                }
+            };
+
+            this.byId("delvSchedTab").addEventDelegate(oTableEventDelegate);
+            this.byId("delvDtlTab").addEventDelegate(oTableEventDelegate);
+            this.byId("delvStatTab").addEventDelegate(oTableEventDelegate);
+
+            var oFormInputEventDelegate = {
+                onkeydown: function(oEvent){
+                    me.onFormInputKeyDown(oEvent);
+                },
+            };
+
+            this.byId("fldTOTALNOPKG").addEventDelegate(oFormInputEventDelegate);
+            this.byId("fldREVNO").addEventDelegate(oFormInputEventDelegate);
+            this.byId("fldGRSWT").addEventDelegate(oFormInputEventDelegate);
+            this.byId("fldNETWT").addEventDelegate(oFormInputEventDelegate);
+            this.byId("fldVOLUME").addEventDelegate(oFormInputEventDelegate);
 
             const route = this.getOwnerComponent().getRouter().getRoute("RouteDetail");
             route.attachPatternMatched(this.onPatternMatched, this);
@@ -74,8 +92,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
             if (this.getOwnerComponent().getModel("LOCK_MODEL").getData().item !== undefined) { this._oLock = this.getOwnerComponent().getModel("LOCK_MODEL").getData().item; }
 
-            // this.getView().setModel(new JSONModel(this._oBlankHeaderData), "header");
-            // console.log(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData())
             //set initial list of ship mode and status
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().shipmode), "shipmode");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().status), "status");
@@ -180,13 +196,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 me.getDynamicColumns("SHPDOCDLVSCHD", "Z3DERP_SHPDCDLVS", "delvSchedTab");
             }, 100);
 
-            // if (sap.ui.getCore().byId("backBtn") !== undefined) {
-            //     sap.ui.getCore().byId("backBtn").mEventRegistry.press[0].fFunction = function(oEvent) {
-            //         me.onNavBack();
-            //     }
-            // }
-
-            // var vSBU = this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv;
             var oHeaderData = {};
 
             this.byId("delvSchedTab").setModel(new JSONModel({
@@ -365,68 +374,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 error: function (err) { }
             });
 
-            // setTimeout(() => {
-                me.getColumnProp();
-            // }, 1000);
+            me.getColumnProp();
 
-            // this.getOwnerComponent().getRouter().stop();
-            // this._href = window.location.href;
-
-            // $(window).off('hashchange').on('hashchange', function (e) {
-            //     console.log(me._bSelfURLSetting)
-            //     if (me._bSelfURLSetting) {
-            //         me._bSelfURLSetting = false;
-            //         return;
-            //     }
-
-            //     console.log(sap.ushell.Container.getDirtyFlag())
-
-            //     if (sap.ushell.Container.getDirtyFlag()) {
-            //         sap.ushell.Container.setDirtyFlag(false);
-            //         var bLeave = confirm("This page contains unsaved data. Are you sure you want to leave the page?");
-            //         console.log(bLeave)
-            //         if (!bLeave) {
-            //             // re-set the URL
-            //             me._bSelfURLSetting = true;
-            //             window.location.href = me._href;
-            //         }
-            //         else {
-            //             me._dataMode = "READ";                        
-            //             me.getOwnerComponent().getRouter().initialize(false); 
-            //             me.unLock();
-            //         }
-            //     } else {
-            //         me.getOwnerComponent().getRouter().initialize(false);
-            //     }
-            // });
-
-            // $(window).off('hashchange').on('hashchange', function (e) {
-            //     console.log(me._bSelfURLSetting)
-            //     if (me._bSelfURLSetting) {
-            //         me._bSelfURLSetting = false;
-            //         return;
-            //     }
-
-            //     console.log(sap.ushell.Container.getDirtyFlag())
-
-            //     if (sap.ushell.Container.getDirtyFlag()) {
-            //         sap.ushell.Container.setDirtyFlag(false);
-            //         var bLeave = confirm("This page contains unsaved data. Are you sure you want to leave the page?");
-            //         console.log(bLeave)
-            //         if (!bLeave) {
-            //             // re-set the URL
-            //             me._bSelfURLSetting = true;
-            //             window.location.href = me._href;
-            //         }
-            //         else {
-            //             me._dataMode = "READ";                        
-            //             me.getOwnerComponent().getRouter().initialize(false); 
-            //             me.unLock();
-            //         }
-            //     } else {
-            //         me.getOwnerComponent().getRouter().initialize(false);
-            //     }
-            // });
         },
 
         onNavBack: function(oEvent) {
@@ -449,9 +398,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
             var oModelColumns = new JSONModel();
             await oModelColumns.loadData(sPath);
-            // this._aColumns = oModelColumns.getData();
+
             this._oModelColumns = oModelColumns.getData();
-            // this.setRowEditMode("detail");
         },
 
         getDynamicColumns(arg1, arg2, arg3) {
@@ -901,24 +849,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                             )
         
                             me.getView().addDependent(me._AddDelvSchedDialog);
-        
-                            // var oTableEventDelegate = {
-                            //     onkeyup: function (oEvent) {
-                            //         me.onKeyUp(oEvent);
-                            //     },
-        
-                            //     onAfterRendering: function (oEvent) {
-                            //         var oControl = oEvent.srcControl;
-                            //         var sTabId = oControl.sId.split("--")[oControl.sId.split("--").length - 1];
-        
-                            //         if (sTabId.substr(sTabId.length - 3) === "Tab") me._tableRendered = sTabId;
-                            //         else me._tableRendered = "";
-        
-                            //         me.onAfterTableRendering();
-                            //     }
-                            // };
-        
-                            // sap.ui.getCore().byId("reorderTab").addEventDelegate(oTableEventDelegate);
                         }
                         else {
                             me._AddDelvSchedDialog.getModel().setProperty("/rows", oData.results);
@@ -938,33 +868,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     }
                 })
 
-                // this.getView().byId("btnAddDelvSched").setVisible(false);
-                // this.getView().byId("btnDeleteDelvSched").setVisible(false);
-                // this.getView().byId("btnCompleteDelvSched").setVisible(false);
-                // this.getView().byId("btnRefreshDelvSched").setVisible(false);
-                // this.getView().byId("btnAddNewDelvSched").setVisible(true);
-                // this.getView().byId("btnRemoveNewDelvSched").setVisible(true);
-                // this.getView().byId("btnSavedDelvSched").setVisible(true);
-                // this.getView().byId("btnCancelDelvSched").setVisible(true);
-
-                // this.getView().byId("btnEditHdr").setEnabled(false);
-                // this.getView().byId("btnRefreshHdr").setEnabled(false);
-
-                // var oIconTabBar = this.byId("itbDetail");
-                // oIconTabBar.getItems().filter(item => item.getProperty("key") !== oIconTabBar.getSelectedKey())
-                //     .forEach(item => item.setProperty("enabled", false));  
-
-                // if (this.byId("delvSchedTab").getBinding("rows").aFilters.length > 0) {
-                //     this._aColFilters = this.byId("delvSchedTab").getBinding("rows").aFilters;
-                // }
-
                 if (this.byId("delvSchedTab").getBinding("rows").aSorters.length > 0) {
                     this._aColSorters = this.byId("delvSchedTab").getBinding("rows").aSorters;
                 }
             }
-
-            // this._dataMode = "NEW";
-            // if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(true); }
         },
 
         onAddNewRow: function (oEvent) {
@@ -995,20 +902,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 this.getView().byId("btnRefreshHdr").setVisible(false);
                 this.getView().byId("btnSaveHdr").setVisible(true);
                 this.getView().byId("btnCancelHdr").setVisible(true);
-                this.getView().byId("btnComplete").setVisible(false);
-
-                // this.getView().byId("btnEditShipDtl").setEnabled(false);
-                // this.getView().byId("btnRefreshShipDtl").setEnabled(false);
-                // this.getView().byId("btnAddDelvSched").setEnabled(false);
-                // this.getView().byId("btnDeleteDelvSched").setEnabled(false);
-                // this.getView().byId("btnCompleteDelvSched").setEnabled(false);
-                // this.getView().byId("btnRefreshDelvSched").setEnabled(false);                
+                this.getView().byId("btnComplete").setVisible(false);              
 
                 var oIconTabBar = this.byId("itbDetail");
-                oIconTabBar.getItems().forEach(item => item.setProperty("enabled", false));
-
-                // this.byId("delvSchedTab").setShowOverlay(true);
-                // this.byId("delvStatTab").setShowOverlay(true);  
+                oIconTabBar.getItems().forEach(item => item.setProperty("enabled", false));  
             }
             else if (obj.getId().indexOf("shipDtlForm") >= 0) {
                 this._oDataBeforeChange = jQuery.extend(true, {}, this.getView().getModel("header").getData());
@@ -2167,6 +2064,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                             me.getView().byId("fldSTATUS").setValue("51");
                             me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
                             me.unLock();
+                            me.getHeaderData(false);
+                            me.getDelvStatusData(false);
                             Common.closeProcessingDialog(me);
                         },
                         error: function (oError) {
@@ -2353,6 +2252,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
         setRowEditMode() {
             var oTable = this.byId(this._sActiveTable);
+            
+            var oInputEventDelegate = {
+                onkeydown: function(oEvent){
+                    me.onInputKeyDown(oEvent);
+                },
+            };
 
             oTable.getColumns().forEach((col, idx) => {
                 var sColName = "";
@@ -2382,7 +2287,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                                     }
                                 },
                                 liveChange: this.onNumberLiveChange.bind(this)
-                            }));
+                            }).addEventDelegate(oInputEventDelegate));
                         }
                     })
             })
@@ -2567,21 +2472,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             this.loadExtendPODialog.close();
         },
 
-        setActiveRowHighlightByTableId(arg) {
-            var oTable = this.byId(arg);
-
-            setTimeout(() => {
-                var iActiveRowIndex = oTable.getModel().getData().rows.findIndex(item => item.ACTIVE === "X");
-
-                oTable.getRows().forEach(row => {
-                    if (row.getBindingContext() && +row.getBindingContext().sPath.replace("/rows/", "") === iActiveRowIndex) {
-                        row.addStyleClass("activeRow");
-                    }
-                    else row.removeStyleClass("activeRow");
-                })
-            }, 10);
-        },
-
         handleValueHelp: function(oEvent) {            
             var oSource = oEvent.getSource();
             var sModel = oSource.getBindingInfo("value").parts[0].model;
@@ -2739,7 +2629,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             var oSource = oEvent.getSource();
             var isInvalid = !oSource.getSelectedKey() && oSource.getValue().trim();
             oSource.setValueState(isInvalid ? "Error" : "None");
-
+            console.log(oEvent.getParameters())
+            console.log(oEvent.getSource())
             oSource.getSuggestionItems().forEach(item => {
                 if (item.getProperty("key") === oSource.getValue().trim()) {
                     isInvalid = false;
@@ -3111,6 +3002,70 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             return await promise;
         },
         
+        onCellClick: function (oEvent) {
+            if (oEvent.getParameters().rowBindingContext) {
+                var oTable = oEvent.getSource(); //this.byId("ioMatListTab");
+                var sRowPath = oEvent.getParameters().rowBindingContext.sPath;
+
+                if (oTable.getId().indexOf("headerTab") >= 0) {
+                    var vCurrComp = oTable.getModel().getProperty(sRowPath + "/COSTCOMPCD");
+                    var vPrevComp = this.getView().getModel("ui").getData().activeComp;
+
+                    if (vCurrComp !== vPrevComp) {
+                        this.getView().getModel("ui").setProperty("/activeComp", vCurrComp);
+
+                        if (this._dataMode === "READ") {
+                            this.getView().getModel("ui").setProperty("/activeCompDisplay", vCurrComp);
+                            this.getDetailData(false);
+                        }
+
+                        var oTableDetail = this.byId("detailTab");
+                        var oColumns = oTableDetail.getColumns();
+
+                        for (var i = 0, l = oColumns.length; i < l; i++) {
+                            if (oColumns[i].getSorted()) {
+                                oColumns[i].setSorted(false);
+                            }
+                        }
+                    }
+
+                    if (this._dataMode === "READ") this._sActiveTable = "headerTab";
+                }
+                else {
+                    if (this._dataMode === "READ") this._sActiveTable = "detailTab";
+                }
+
+                oTable.getModel().getData().rows.forEach(row => row.ACTIVE = "");
+                oTable.getModel().setProperty(sRowPath + "/ACTIVE", "X");
+
+                oTable.getRows().forEach(row => {
+                    if (row.getBindingContext() && row.getBindingContext().sPath.replace("/rows/", "") === sRowPath.replace("/rows/", "")) {
+                        row.addStyleClass("activeRow");
+                    }
+                    else row.removeStyleClass("activeRow")
+                })
+            }
+        },
+
+        onTableClick(oEvent) {
+            var oControl = oEvent.srcControl;
+            var sTabId = oControl.sId.split("--")[oControl.sId.split("--").length - 1];
+
+            while (sTabId.substr(sTabId.length - 3) !== "Tab") {                    
+                oControl = oControl.oParent;
+                sTabId = oControl.sId.split("--")[oControl.sId.split("--").length - 1];
+            }
+            
+            if (this._dataMode === "READ") this._sActiveTable = sTabId;
+        },
+
+        onAfterTableRendering: function (oEvent) {
+            if (this._tableRendered !== "") {
+                this.setActiveRowHighlightByTableId(this._tableRendered);
+                this._tableRendered = "";
+            }
+        },
+
         onFirstVisibleRowChanged: function (oEvent) {
             var oTable = oEvent.getSource();
             var sTabId = oTable.sId.split("--")[oTable.sId.split("--").length - 1];
@@ -3153,7 +3108,153 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
             this.setActiveRowHighlightByTableId(sTabId);
         },
+
+        onKeyUp(oEvent) {
+            if ((oEvent.key === "ArrowUp" || oEvent.key === "ArrowDown") && oEvent.srcControl.sParentAggregationName === "rows") {
+                var oTable = this.byId(oEvent.srcControl.sId).oParent;
+
+                if (this.byId(oEvent.srcControl.sId).getBindingContext()) {
+                    var sRowPath = this.byId(oEvent.srcControl.sId).getBindingContext().sPath;
+
+                    oTable.getModel().getData().rows.forEach(row => row.ACTIVE = "");
+                    oTable.getModel().setProperty(sRowPath + "/ACTIVE", "X");
+
+                    oTable.getRows().forEach(row => {
+                        if (row.getBindingContext() && row.getBindingContext().sPath.replace("/rows/", "") === sRowPath.replace("/rows/", "")) {
+                            row.addStyleClass("activeRow");
+                        }
+                        else row.removeStyleClass("activeRow")
+                    })
+                }
+
+                if (oTable.getId().indexOf("headerTab") >= 0) {
+                    var oTableDetail = this.byId("detailTab");
+                    var oColumns = oTableDetail.getColumns();
+
+                    for (var i = 0, l = oColumns.length; i < l; i++) {
+                        if (oColumns[i].getSorted()) {
+                            oColumns[i].setSorted(false);
+                        }
+                    }
+                }
+            }
+            else if (oEvent.key === "Enter" && oEvent.srcControl.sParentAggregationName === "cells") {
+                if (this._dataMode === "NEW") this.onAddNewRow();
+            }               
+        },
         
+        onInputKeyDown(oEvent) {
+            if (oEvent.key === "ArrowUp" || oEvent.key === "ArrowDown") {
+                //prevent increase/decrease of number value
+                oEvent.preventDefault();
+                
+                var sTableId = oEvent.srcControl.oParent.oParent.sId;
+                var oTable = this.byId(sTableId);
+                var sColumnName = oEvent.srcControl.getBindingInfo("value").parts[0].path;
+                var sCurrentRowIndex = +oEvent.srcControl.oParent.getBindingContext().sPath.replace("/rows/", "");
+                var sColumnIndex = -1;
+                var sCurrentRow = -1;
+                var sNextRow = -1;
+                var sActiveRow = -1;
+                var iFirstVisibleRowIndex = oTable.getFirstVisibleRow();
+                var iVisibleRowCount = oTable.getVisibleRowCount();
+
+                oTable.getModel().setProperty(oEvent.srcControl.oParent.getBindingContext().sPath + "/" + oEvent.srcControl.getBindingInfo("value").parts[0].path, oEvent.srcControl.getValue());
+
+                //get active row (arrow down)
+                oTable.getBinding("rows").aIndices.forEach((item, index) => {
+                    if (item === sCurrentRowIndex) { sCurrentRow = index; }
+                    if (sCurrentRow !== -1 && sActiveRow === -1) { 
+                        if ((sCurrentRow + 1) === index) { sActiveRow = item }
+                        else if ((index + 1) === oTable.getBinding("rows").aIndices.length) { sActiveRow = item }
+                    }
+                })
+                
+                //clear active row
+                oTable.getModel().getData().rows.forEach(row => row.ACTIVE = "");
+
+                //get next row to focus and active row (arrow up)
+                if (oEvent.key === "ArrowUp") { 
+                    if (sCurrentRow !== 0) {
+                        sActiveRow = oTable.getBinding("rows").aIndices.filter((fItem, fIndex) => fIndex === (sCurrentRow - 1))[0];
+                    }
+                    else { sActiveRow = oTable.getBinding("rows").aIndices[0] }
+
+                    sCurrentRow = sCurrentRow === 0 ? sCurrentRow : sCurrentRow - iFirstVisibleRowIndex;
+                    sNextRow = sCurrentRow === 0 ? 0 : sCurrentRow - 1;
+                }
+                else if (oEvent.key === "ArrowDown") { 
+                    sCurrentRow = sCurrentRow - iFirstVisibleRowIndex;
+                    sNextRow = sCurrentRow + 1;
+                }
+
+                //set active row
+                oTable.getModel().setProperty("/rows/" + sActiveRow + "/ACTIVE", "X");
+
+                //auto-scroll up/down
+                if (oEvent.key === "ArrowDown" && (sNextRow + 1) < oTable.getModel().getData().rows.length && (sNextRow + 1) > iVisibleRowCount) {
+                    oTable.setFirstVisibleRow(iFirstVisibleRowIndex + 1);
+                }   
+                else if (oEvent.key === "ArrowUp" && sCurrentRow === 0 && sNextRow === 0 && iFirstVisibleRowIndex !== 0) { 
+                    oTable.setFirstVisibleRow(iFirstVisibleRowIndex - 1);
+                }
+
+                //get the cell to focus
+                oTable.getRows()[sCurrentRow].getCells().forEach((cell, index) => {
+                    if (cell.getBindingInfo("value") !== undefined) {
+                        if (cell.getBindingInfo("value").parts[0].path === sColumnName) { sColumnIndex = index; }
+                    }
+                })
+                
+                if (oEvent.key === "ArrowDown") {
+                    sNextRow = sNextRow === iVisibleRowCount ? sNextRow - 1 : sNextRow;
+                }
+
+                //set focus on cell
+                setTimeout(() => {
+                    oTable.getRows()[sNextRow].getCells()[sColumnIndex].focus();
+                    oTable.getRows()[sNextRow].getCells()[sColumnIndex].getFocusDomRef().select();
+                }, 100);
+
+                //set row highlight
+                this.setActiveRowHighlight();
+            }
+        },
+        
+        onFormInputKeyDown(oEvent) {
+            oEvent.preventDefault();
+        },
+
+        setActiveRowHighlight(sTableId) {
+            var oTable = this.byId(sTableId !== undefined && sTableId !== "" ? sTableId : this._sActiveTable);
+
+            setTimeout(() => {
+                var iActiveRowIndex = oTable.getModel().getData().rows.findIndex(item => item.ACTIVE === "X");
+
+                oTable.getRows().forEach(row => {
+                    if (row.getBindingContext() && +row.getBindingContext().sPath.replace("/rows/", "") === iActiveRowIndex) {
+                        row.addStyleClass("activeRow");
+                    }
+                    else row.removeStyleClass("activeRow");
+                })                    
+            }, 100);
+        },
+
+        setActiveRowHighlightByTableId(arg) {
+            var oTable = this.byId(arg);
+
+            setTimeout(() => {
+                var iActiveRowIndex = oTable.getModel().getData().rows.findIndex(item => item.ACTIVE === "X");
+
+                oTable.getRows().forEach(row => {
+                    if (row.getBindingContext() && +row.getBindingContext().sPath.replace("/rows/", "") === iActiveRowIndex) {
+                        row.addStyleClass("activeRow");
+                    }
+                    else row.removeStyleClass("activeRow");
+                })
+            }, 10);
+        },
+
         //******************************************* */
         // Column Filtering
         //******************************************* */
