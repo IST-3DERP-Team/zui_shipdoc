@@ -1,20 +1,20 @@
 {
     "header": [
-        {"ColumnName": "ISSPLNT", 
-            "ValueHelp": {"show": true, "items": {"path": "issplant", "value": "PLANTCD", "text": "PLANTCD"},
-                "SuggestionItems": {"path": "issplant>/", "text": "{issplant>PLANTCD}" },
+        {"ColumnName": "ISSPLNT", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "issplant", "value": "PLANTCD", "text": "DESCRIPTION"},
+                "SuggestionItems": {"path": "issplant>/", "text": "{issplant>PLANTCD}", "additionalText": "{issplant>DESCRIPTION}", "maxSuggestionWidth": "300px" },
                 "columns": "tvh_issplnt"
             }
         },
-        {"ColumnName": "SOLDTOCUST", 
-            "ValueHelp": {"show": true, "items": {"path": "shiptocust", "value": "CUSTOMER", "text": "CUSTGRP"},
-                "SuggestionItems": {"path": "shiptocust>/", "text": "{shiptocust>CUSTOMER}", "additionalText": "{shiptocust>CUSTGRP}",  "maxSuggestionWidth": "300px"},
+        {"ColumnName": "SOLDTOCUST", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "soldtocust", "value": "CUSTOMER", "text": "NAME1"},
+                "SuggestionItems": {"path": "soldtocust>/", "text": "{soldtocust>CUSTOMER}", "additionalText": "{soldtocust>NAME1}",  "maxSuggestionWidth": "300px"},
                 "columns": "tvh_soldtocust"
             }
         },
-        {"ColumnName": "BILLTOCUST", 
-            "ValueHelp": {"show": true, "items": {"path": "shiptocust", "value": "CUSTOMER", "text": "CUSTOMER"},
-                "SuggestionItems": {"path": "shiptocust>/", "text": "{shiptocust>CUSTOMER}", "maxSuggestionWidth": "300px"},
+        {"ColumnName": "BILLTOCUST", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "shiptocust", "value": "CUSTOMER", "text": "NAME1"},
+                "SuggestionItems": {"path": "shiptocust>/", "text": "{shiptocust>CUSTOMER}", "additionalText": "{shiptocust>NAME1}",  "maxSuggestionWidth": "400px"},
                 "columns": "tvh_billtocust"
             }
         },
@@ -62,21 +62,29 @@
         },
         {"ColumnName": "ACCTTYP", "TextFormatMode": "ValueKey",
             "ValueHelp": {"show": true, "items": {"path": "acctyp", "value": "ACCTTYP", "text": "DESC1"},
-                "SuggestionItems": {"path": "acctyp>/", "text": "{wtuom>ACCTTYP}", "additionalText": "{wtuom>DESC1}", "maxSuggestionWidth": "200px"},
+                "SuggestionItems": {"path": "acctyp>/", "text": "{acctyp>ACCTTYP}", "additionalText": "{acctyp>DESC1}", "maxSuggestionWidth": "200px"},
                 "columns": "tvh_acctyp"
+            }
+        },
+        {"ColumnName": "STATUS", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "status", "value": "DLVSTATCD", "text": "SHORTTEXT"},
+                "SuggestionItems": {"path": "status>/", "text": "{status>DLVSTATCD}", "additionalText": "{status>SHORTTEXT}", "maxSuggestionWidth": "200px"}
             }
         }
     ],
     "tvh_issplnt": [
-        {"ColumnName": "PLANTCD", "DataType": "STRING", "ColumnWidth": "340px", "Visible": true, "Key": true, "Value": true}
+        {"ColumnName": "PLANTCD", "DataType": "STRING", "ColumnWidth": "100px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "DESCRIPTION", "DataType": "STRING", "ColumnWidth": "300px", "Visible": true, "Key": false, "Value": true}
     ],    
     "tvh_soldtocust": [
-        {"ColumnName": "CUSTOMER", "DataType": "STRING", "ColumnWidth": "200px", "Visible": true, "Key": true, "Value": true},
-        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "200px", "Visible": true, "Key": false, "Value": false}
+        {"ColumnName": "CUSTOMER", "DataType": "STRING", "ColumnWidth": "120px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "NAME1", "DataType": "STRING", "ColumnWidth": "350px", "Visible": true, "Key": false, "Value": true},
+        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "80px", "Visible": true, "Key": false, "Value": false}
     ],
     "tvh_billtocust": [
-        {"ColumnName": "CUSTOMER", "DataType": "STRING", "ColumnWidth": "340px", "Visible": true, "Key": true, "Value": true},
-        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "200px", "Visible": false, "Key": false, "Value": false}
+        {"ColumnName": "CUSTOMER", "DataType": "STRING", "ColumnWidth": "120px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "NAME1", "DataType": "STRING", "ColumnWidth": "350px", "Visible": true, "Key": false, "Value": true},
+        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "80px", "Visible": false, "Key": false, "Value": false}
     ],
     "tvh_salesterm": [
         {"ColumnName": "SALESTERM", "DataType": "STRING", "ColumnWidth": "150px", "Visible": true, "Key": true, "Value": true},

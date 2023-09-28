@@ -20,24 +20,36 @@
         <content>
             <VBox fitContainer="true" class="shipdocdtl"> 
                 <Panel id="delvHdrForm" height="275px" class="sapUiNoContentPadding hdrFormBgColor">
-                    <Toolbar class="sapUiTinyMarginBeginEnd">
+                    <OverflowToolbar class="sapUiTinyMarginBeginEnd">
                         <Text text="{ddtext>/DLVHDR}" class="headerTitle" />
                         <ToolbarSpacer/>
                         <Button id="btnEditHdr" 
                             icon="sap-icon://edit"
                             press="onEdit"
                             tooltip="{ddtext>/EDIT}"
-                            visible="true"/>
+                            visible="true" >
+                                <customData>
+                                    <core:CustomData key="TableId" value="delvHdrForm" />
+                                </customData>
+                            </Button>
                         <Button id="btnSaveHdr" 
                             icon="sap-icon://save"
                             press="onSave"
                             tooltip="{ddtext>/SAVE}"
-                            visible="false"/>
+                            visible="false" >
+                            <customData>
+                                <core:CustomData key="TableId" value="delvHdrForm" />
+                            </customData>
+                        </Button>
                         <Button id="btnCancelHdr" 
                             icon="sap-icon://sys-cancel"
                             press="onCancel"
                             tooltip="{ddtext>/CANCEL}"
-                            visible="false"/>
+                            visible="false" >
+                            <customData>
+                                <core:CustomData key="TableId" value="delvHdrForm" />
+                            </customData> 
+                        </Button>
                         <Button id="btnRefreshHdr" 
                             icon="sap-icon://refresh"
                             press="onRefresh"
@@ -52,8 +64,8 @@
                             icon="sap-icon://complete"
                             press="onComplete"
                             tooltip="{ddtext>/COMPLETE}"
-                            visible="true"/>
-                    </Toolbar>
+                            visible="true" />
+                    </OverflowToolbar>
 
                     <form:Form id="headerForm" editable="true" class="sapUiNoContentPadding">
                         <form:layout>
@@ -80,7 +92,7 @@
                                             <Label text="{ddtext>/DLVNO}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldDLVNO" value="{header>/DLVNO}" editable="false"/>
+                                            <Input id="fldDLVNO" value="{header>/DLVNO}" editable="false" tooltip="{header>/DLVNO}"/>
                                         </form:fields>
                                     </form:FormElement>
                                     <form:FormElement>
@@ -91,15 +103,22 @@
                                             <!-- <Input id="fldISSPLNT" value="{header>/ISSPLNT}" editable="false" /> -->
                                             <Input id="fldISSPLNT"
                                                 type="Text" 
-                                                value="{header>/ISSPLNT}" 
+                                                value="{ 
+                                                    parts: [{ path: 'header>/ISSPLNT' },{ value: 'issplant' },{ value: 'PLANTCD' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
+                                                    formatter: '.formatValueHelp'
+                                                }"
+                                                selectedKey="{header>/ISSPLNT}"
+                                                tooltip="{header>/ISSPLNT}"
+                                                textFormatMode="ValueKey"
                                                 showValueHelp="true"
                                                 valueHelpRequest="handleFormValueHelp" 
                                                 showSuggestion="true" 
                                                 suggestionItems="{path: 'issplant>/', length: 10000, templateShareable: false}" 
+                                                maxSuggestionWidth="350px"
                                                 change="onFormValueHelpInputChange"
                                                 editable="false">
                                                 <suggestionItems>
-                                                    <core:Item key="{issplant>PLANTCD}" text="{issplant>PLANTCD}" />
+                                                    <core:ListItem key="{issplant>PLANTCD}" text="{issplant>DESCRIPTION}" additionalText="{issplant>PLANTCD}" />
                                                 </suggestionItems>
                                             </Input>
                                         </form:fields>
@@ -112,15 +131,22 @@
                                             <!-- <Input id="fldSOLDTOCUST" value="{header>/SOLDTOCUST}" editable="false" /> -->
                                             <Input id="fldSOLDTOCUST"
                                                 type="Text" 
-                                                value="{header>/SOLDTOCUST}" 
+                                                value="{ 
+                                                    parts: [{ path: 'header>/SOLDTOCUST' },{ value: 'soldtocust' },{ value: 'CUSTOMER' },{ value: 'NAME1' },{ value: 'ValueKey' }],
+                                                    formatter: '.formatValueHelp'
+                                                }"
+                                                selectedKey="{header>/SOLDTOCUST}"
+                                                tooltip="{header>/SOLDTOCUST}"
+                                                textFormatMode="ValueKey"
                                                 showValueHelp="true"
                                                 valueHelpRequest="handleFormValueHelp" 
                                                 showSuggestion="true" 
-                                                suggestionItems="{path: 'shiptocust>/', length: 10000, templateShareable: false}" 
+                                                suggestionItems="{path: 'soldtocust>/', length: 10000, templateShareable: false}" 
+                                                maxSuggestionWidth="400px"
                                                 change="onFormValueHelpInputChange"
                                                 editable="false">
                                                 <suggestionItems>
-                                                    <core:ListItem key="{shiptocust>CUSTOMER}" text="{shiptocust>CUSTOMER}" additionalText="{salesterm>CUSTGRP}" />
+                                                    <core:ListItem key="{soldtocust>CUSTOMER}" text="{soldtocust>NAME1}" additionalText="{soldtocust>CUSTOMER}" />
                                                 </suggestionItems>
                                             </Input>                                        
                                         </form:fields>
@@ -133,15 +159,22 @@
                                             <!-- <Input id="fldBILLTOCUST" value="{header>/BILLTOCUST}" editable="false" /> -->
                                             <Input id="fldBILLTOCUST"
                                                 type="Text" 
-                                                value="{header>/BILLTOCUST}" 
+                                                value="{ 
+                                                    parts: [{ path: 'header>/BILLTOCUST' },{ value: 'shiptocust' },{ value: 'CUSTOMER' },{ value: 'NAME1' },{ value: 'ValueKey' }],
+                                                    formatter: '.formatValueHelp'
+                                                }"
+                                                selectedKey="{header>/BILLTOCUST}"
+                                                tooltip="{header>/BILLTOCUST}"
+                                                textFormatMode="ValueKey"
                                                 showValueHelp="true"
                                                 valueHelpRequest="handleFormValueHelp" 
                                                 showSuggestion="true" 
                                                 suggestionItems="{path: 'shiptocust>/', length: 10000, templateShareable: false}" 
+                                                maxSuggestionWidth="400px"
                                                 change="onFormValueHelpInputChange"
                                                 editable="false">
                                                 <suggestionItems>
-                                                    <core:Item key="{shiptocust>CUSTOMER}" text="{shiptocust>CUSTOMER}" />
+                                                    <core:ListItem key="{shiptocust>CUSTOMER}" text="{shiptocust>NAME1}" additionalText="{shiptocust>CUSTOMER}" />
                                                 </suggestionItems>
                                             </Input>                                        
                                         </form:fields>
@@ -150,8 +183,28 @@
                                         <form:label>
                                             <Label text="{ddtext>/CUSTGRP}" required="false"></Label>
                                         </form:label>
-                                        <form:fields>
-                                            <Input id="fldCUSTGRP" value="{header>/CUSTGRP}" editable="false" />
+                                        <form:fields>                                        
+                                            <!-- <Input id="fldCUSTGRP" value="{header>/CUSTGRP}" editable="false" tooltip="{header>/CUSTGRP}" /> -->
+                                            <Input id="fldCUSTGRP"
+                                                type="Text" 
+                                                value="{ 
+                                                    parts: [{ path: 'header>/CUSTGRP' },{ value: 'custgrp' },{ value: 'CUSTGRP' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
+                                                    formatter: '.formatValueHelp'
+                                                }"
+                                                selectedKey="{header>/CUSTGRP}"
+                                                tooltip="{header>/CUSTGRP}"
+                                                textFormatMode="ValueKey"
+                                                showValueHelp="true"
+                                                valueHelpRequest="handleFormValueHelp" 
+                                                showSuggestion="true" 
+                                                suggestionItems="{path: 'custgrp>/', length: 10000, templateShareable: false}" 
+                                                maxSuggestionWidth="400px"
+                                                change="onFormValueHelpInputChange"
+                                                editable="false">
+                                                <suggestionItems>
+                                                    <core:ListItem key="{custgrp>CUSTGRP}" text="{custgrp>DESCRIPTION}" additionalText="{custgrp>CUSTGRP}" />
+                                                </suggestionItems>
+                                            </Input>
                                         </form:fields>
                                     </form:FormElement> 
                                     <form:FormElement>
@@ -166,6 +219,8 @@
                                                     parts: [{ path: 'header>/SALESTERM' },{ value: 'salesterm' },{ value: 'SALESTERM' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
                                                     formatter: '.formatValueHelp'
                                                 }" 
+                                                selectedKey="{header>/SALESTERM}"
+                                                tooltip="{header>/SALESTERM}"
                                                 textFormatMode="ValueKey"	
                                                 showValueHelp="true"
                                                 valueHelpRequest="handleFormValueHelp" 
@@ -184,7 +239,7 @@
                                             <Label text="{ddtext>/SALESTERMTEXT}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldSALESTERMTEXT" value="{header>/SALESTERMTEXT}" editable="false" />
+                                            <Input id="fldSALESTERMTEXT" value="{header>/SALESTERMTEXT}" editable="false" tooltip="{header>/SALESTERMTEXT}" />
                                         </form:fields>
                                     </form:FormElement>                                                                        
                                 </form:formElements>
@@ -199,6 +254,7 @@
                                             <DatePicker
                                                 id="fldDOCDT"
                                                 value="{header>/DOCDT}"
+                                                tooltip="{header>/DOCDT}"
                                                 placeholder="Enter Date"
                                                 displayFormat="MM/dd/yyyy"
                                                 valueFormat="MM/dd/yyyy"
@@ -215,6 +271,7 @@
                                             <DatePicker
                                                 id="fldPOSTDT"
                                                 value="{header>/POSTDT}"
+                                                tooltip="{header>/POSTDT}"
                                                 placeholder="Enter Date"
                                                 displayFormat="MM/dd/yyyy"
                                                 valueFormat="MM/dd/yyyy"
@@ -231,6 +288,7 @@
                                             <DatePicker
                                                 id="fldPLANDLVDT"
                                                 value="{header>/PLANDLVDT}"
+                                                tooltip="{header>/PLANDLVDT}"
                                                 placeholder="Enter Date"
                                                 displayFormat="MM/dd/yyyy"
                                                 valueFormat="MM/dd/yyyy"
@@ -247,6 +305,7 @@
                                             <DatePicker
                                                 id="fldINDCDT"
                                                 value="{header>/INDCDT}"
+                                                tooltip="{header>/INDCDT}"
                                                 placeholder="Enter Date"
                                                 displayFormat="MM/dd/yyyy"
                                                 valueFormat="MM/dd/yyyy"
@@ -263,6 +322,7 @@
                                             <DatePicker
                                                 id="fldEXFTYDT"
                                                 value="{header>/EXFTYDT}"
+                                                tooltip="{header>/EXFTYDT}"
                                                 placeholder="Enter Date"
                                                 displayFormat="MM/dd/yyyy"
                                                 valueFormat="MM/dd/yyyy"
@@ -279,6 +339,7 @@
                                             <DatePicker
                                                 id="fldDEPARTDT"
                                                 value="{header>/DEPARTDT}"
+                                                tooltip="{header>/DEPARTDT}"
                                                 placeholder="Enter Date"
                                                 displayFormat="MM/dd/yyyy"
                                                 valueFormat="MM/dd/yyyy"
@@ -299,6 +360,8 @@
                                                     parts: [{ path: 'header>/EVERS' },{ value: 'shipmode' },{ value: 'SHIPMODE' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
                                                     formatter: '.formatValueHelp'
                                                 }" 
+                                                selectedKey="{header>/EVERS}"
+                                                tooltip="{header>/EVERS}"
                                                 textFormatMode="ValueKey"	
                                                 showValueHelp="true"
                                                 valueHelpRequest="handleFormValueHelp" 
@@ -328,6 +391,8 @@
                                                     parts: [{ path: 'header>/DEST' },{ value: 'dest' },{ value: 'DESTCD' },{ value: 'DESC1' },{ value: 'ValueKey' }],
                                                     formatter: '.formatValueHelp'
                                                 }" 
+                                                selectedKey="{header>/DEST}"
+                                                tooltip="{header>/DEST}"
                                                 textFormatMode="ValueKey"	
                                                 showValueHelp="true"
                                                 valueHelpRequest="handleFormValueHelp" 
@@ -346,7 +411,7 @@
                                             <Label text="{ddtext>/COO}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldCOO" value="{header>/COO}" editable="false" change="onInputChange" />
+                                            <Input id="fldCOO" value="{header>/COO}" editable="false" change="onInputChange" tooltip="{header>/COO}" />
                                         </form:fields>
                                     </form:FormElement>
                                     <form:FormElement>
@@ -367,7 +432,7 @@
                                             <Label text="{ddtext>/REFDOCNO}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldREFDOCNO" value="{header>/REFDOCNO}" editable="false" change="onInputChange" />
+                                            <Input id="fldREFDOCNO" value="{header>/REFDOCNO}" editable="false" change="onInputChange" tooltip="{header>/REFDOCNO}" />
                                         </form:fields>
                                     </form:FormElement>
                                     <form:FormElement>
@@ -378,6 +443,7 @@
                                             <DatePicker
                                                 id="fldREFDOCDT"
                                                 value="{header>/REFDOCDT}"
+                                                tooltip="{header>/REFDOCDT}"
                                                 placeholder="Enter Date"
                                                 displayFormat="MM/dd/yyyy"
                                                 valueFormat="MM/dd/yyyy"
@@ -405,12 +471,23 @@
                                         </form:label>
                                         <form:fields>
                                             <Input id="fldSTATUS" 
+                                                type="Text" 
                                                 value="{ 
                                                     parts: [{ path: 'header>/STATUS' },{ value: 'status' },{ value: 'DLVSTATCD' },{ value: 'SHORTTEXT' },{ value: 'ValueKey' }],
                                                     formatter: '.formatValueHelp'
-                                                }"           
-                                                showValueHelp="true"                              
-                                                editable="false" />
+                                                }"
+                                                selectedKey="{header>/STATUS}"
+                                                tooltip="{header>/STATUS}"
+                                                textFormatMode="ValueKey"
+                                                showValueHelp="true"
+                                                valueHelpRequest="handleFormValueHelp" 
+                                                showSuggestion="true" 
+                                                suggestionItems="{path: 'status>/', length: 10000, templateShareable: false}" 
+                                                editable="false">
+                                                <suggestionItems>
+                                                    <core:ListItem key="{status>DLVSTATCD}" text="{status>SHORTTEXT}" additionalText="{status>DLVSTATCD}" />
+                                                </suggestionItems>
+                                             </Input>
                                         </form:fields>
                                     </form:FormElement>
                                 </form:formElements>
@@ -434,7 +511,7 @@
                                             <Label text="{ddtext>/CREATEDBY}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldCREATEDBY" value="{header>/CREATEDBY}" editable="false" />
+                                            <Input id="fldCREATEDBY" value="{header>/CREATEDBY}" editable="false" tooltip="{header>/CREATEDBY}" />
                                         </form:fields>
                                     </form:FormElement>
                                     <form:FormElement>
@@ -442,7 +519,7 @@
                                             <Label text="{ddtext>/CREATEDDT}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldCREATEDDT" value="{header>/CREATEDDT}" editable="false" />
+                                            <Input id="fldCREATEDDT" value="{header>/CREATEDDT}" editable="false" tooltip="{header>/CREATEDDT}" />
                                         </form:fields>
                                     </form:FormElement>
                                     <form:FormElement>
@@ -450,7 +527,7 @@
                                             <Label text="{ddtext>/UPDATEDBY}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldUPDATEDBY" value="{header>/UPDATEDBY}" editable="false" />
+                                            <Input id="fldUPDATEDBY" value="{header>/UPDATEDBY}" editable="false" tooltip="{header>/UPDATEDBY}" />
                                         </form:fields>
                                     </form:FormElement>
                                     <form:FormElement>
@@ -458,7 +535,7 @@
                                             <Label text="{ddtext>/UPDATEDDT}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldUPDATEDDT" value="{header>/UPDATEDDT}" editable="false" />
+                                            <Input id="fldUPDATEDDT" value="{header>/UPDATEDDT}" editable="false" tooltip="{header>/UPDATEDDT}" />
                                         </form:fields>
                                     </form:FormElement>
                                     <form:FormElement>
@@ -466,7 +543,7 @@
                                             <Label text="{ddtext>/REMARKS}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <TextArea id="fldREMARKS" value="{header>/REMARKS}" editable="false" change="onInputChange" />
+                                            <TextArea id="fldREMARKS" value="{header>/REMARKS}" editable="false" change="onInputChange" tooltip="{header>/REMARKS}" />
                                         </form:fields>
                                     </form:FormElement>
                                 </form:formElements>
@@ -489,6 +566,7 @@
                             <uiT:Table id="delvSchedTab"
                                 class="sapUiTinyMarginBottom sapUiTinyMarginBegin sapUiTinyMarginEnd"
                                 visibleRowCountMode="Auto"
+                                minAutoRowCount="1"
                                 showColumnVisibilityMenu="true"
                                 enableColumnFreeze="true"
                                 selectionMode="MultiToggle"
@@ -502,19 +580,27 @@
                                 columnSelect="onColumnUpdated"
                                 columnVisibility="onColumnUpdated">
                                 <uiT:extension>
-                                    <Toolbar>
+                                    <OverflowToolbar>
                                         <Text text="{counts>/dlvsched} {ddtext>/ITEMS}" />
                                         <ToolbarSpacer/>
                                         <Button id="btnAddDelvSched" 
                                             icon="sap-icon://add"
                                             press="onCreate"
                                             tooltip="{ddtext>/ADD}"
-                                            visible="true"/>
+                                            visible="true" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="delvSchedTab" />
+                                            </customData>
+                                        </Button>
                                         <Button id="btnDeleteDelvSched" 
                                             icon="sap-icon://delete"
                                             press="onDelete"
                                             tooltip="{ddtext>/DELETE}"
-                                            visible="true"/>
+                                            visible="true" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="delvSchedTab" />
+                                            </customData>
+                                        </Button>
                                         <Button id="btnRefreshDelvSched" 
                                             icon="sap-icon://refresh"
                                             press="onRefresh"
@@ -544,12 +630,20 @@
                                             icon="sap-icon://save"
                                             press="onSave"
                                             tooltip="{ddtext>/SAVE}"
-                                            visible="false"/>
+                                            visible="false" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="delvSchedTab" />
+                                            </customData> 
+                                        </Button>
                                         <Button id="btnCancelDelvSched" 
                                             icon="sap-icon://sys-cancel"
                                             press="onCancel"
                                             tooltip="{ddtext>/CANCEL}"
-                                            visible="false"/> 
+                                            visible="false" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="delvSchedTab" />
+                                            </customData> 
+                                        </Button>
                                         <Button id="btnFullScreenDelvSched" 
                                             icon="sap-icon://full-screen"
                                             press="onTableResize"
@@ -568,29 +662,41 @@
                                                 <core:CustomData key="Max" value="0" />
                                             </customData>
                                         </Button>
-                                    </Toolbar>
+                                    </OverflowToolbar>
                                 </uiT:extension> 
                             </uiT:Table>
                         </IconTabFilter>
                         <IconTabFilter text="{ddtext>/SHPDTLS}" key="shipdtl">
                             <Panel id="shipDtlForm" height="100%" class="sapUiNoContentPadding">
-                                <Toolbar class="sapUiTinyMarginBeginEnd">
+                                <OverflowToolbar class="sapUiTinyMarginBeginEnd">
                                     <ToolbarSpacer/>
                                     <Button id="btnEditShipDtl" 
                                         icon="sap-icon://edit"
                                         press="onEdit"
                                         tooltip="{ddtext>/EDIT}"
-                                        visible="true"/>
+                                        visible="true" >
+                                        <customData>
+                                            <core:CustomData key="TableId" value="shipDtlForm" />
+                                        </customData>
+                                    </Button>
                                     <Button id="btnSaveShipDtl" 
                                         icon="sap-icon://save"
                                         press="onSave"
                                         tooltip="{ddtext>/SAVE}"
-                                        visible="false"/>
+                                        visible="false" >
+                                        <customData>
+                                            <core:CustomData key="TableId" value="shipDtlForm" />
+                                        </customData> 
+                                    </Button>
                                     <Button id="btnCancelShipDtl" 
                                         icon="sap-icon://sys-cancel"
                                         press="onCancel"
                                         tooltip="{ddtext>/CANCEL}"
-                                        visible="false"/>
+                                        visible="false" >
+                                        <customData>
+                                            <core:CustomData key="TableId" value="shipDtlForm" />
+                                        </customData> 
+                                    </Button>
                                     <Button id="btnRefreshShipDtl" 
                                         icon="sap-icon://refresh"
                                         press="onRefresh"
@@ -618,7 +724,7 @@
                                             <core:CustomData key="Max" value="0" />
                                         </customData>
                                     </Button>
-                                </Toolbar>
+                                </OverflowToolbar>
 
                                 <form:Form id="shipForm" editable="true" class="sapUiNoContentPadding">
                                     <form:layout>
@@ -645,7 +751,7 @@
                                                         <Label text="{ddtext>/VESSEL}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldVESSEL" value="{header>/VESSEL}" editable="false" change="onInputChange" />
+                                                        <Input id="fldVESSEL" value="{header>/VESSEL}" editable="false" change="onInputChange" tooltip="{header>/VESSEL}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -653,7 +759,7 @@
                                                         <Label text="{ddtext>/VOYAGE}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldVOYAGE" value="{header>/VOYAGE}" editable="false" change="onInputChange" />
+                                                        <Input id="fldVOYAGE" value="{header>/VOYAGE}" editable="false" change="onInputChange" tooltip="{header>/VOYAGE}"/>
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -661,7 +767,7 @@
                                                         <Label text="{ddtext>/CARRIER}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldCARRIER" value="{header>/CARRIER}" editable="false" change="onInputChange" />
+                                                        <Input id="fldCARRIER" value="{header>/CARRIER}" editable="false" change="onInputChange" tooltip="{header>/CARRIER}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -669,7 +775,7 @@
                                                         <Label text="{ddtext>/FORWRDR}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldFORWRDR" value="{header>/FORWRDR}" editable="false" change="onInputChange" />
+                                                        <Input id="fldFORWRDR" value="{header>/FORWRDR}" editable="false" change="onInputChange" tooltip="{header>/FORWRDR}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -677,7 +783,7 @@
                                                         <Label text="{ddtext>/FORREFNO}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldFORREFNO" value="{header>/FORREFNO}" editable="false" change="onInputChange" />
+                                                        <Input id="fldFORREFNO" value="{header>/FORREFNO}" editable="false" change="onInputChange" tooltip="{header>/FORREFNO}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -685,7 +791,7 @@
                                                         <Label text="{ddtext>/BOOKINGNO}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldBOOKINGNO" value="{header>/BOOKINGNO}" editable="false" change="onInputChange" />
+                                                        <Input id="fldBOOKINGNO" value="{header>/BOOKINGNO}" editable="false" change="onInputChange" tooltip="{header>/BOOKINGNO}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -693,7 +799,7 @@
                                                         <Label text="{ddtext>/PORTLD}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldPORTLD" value="{header>/PORTLD}" editable="false" change="onInputChange" />
+                                                        <Input id="fldPORTLD" value="{header>/PORTLD}" editable="false" change="onInputChange" tooltip="{header>/PORTLD}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -701,7 +807,7 @@
                                                         <Label text="{ddtext>/PORTDIS}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldPORTDIS" value="{header>/PORTDIS}" editable="false" change="onInputChange" />
+                                                        <Input id="fldPORTDIS" value="{header>/PORTDIS}" editable="false" change="onInputChange" tooltip="{header>/PORTDIS}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -712,6 +818,7 @@
                                                         <DatePicker
                                                             id="fldETD"
                                                             value="{header>/ETD}"
+                                                            tooltip="{header>/ETD}"
                                                             placeholder="Enter Date"
                                                             displayFormat="MM/dd/yyyy"
                                                             valueFormat="MM/dd/yyyy"
@@ -728,6 +835,7 @@
                                                         <DatePicker
                                                             id="fldETA"
                                                             value="{header>/ETA}"
+                                                            tooltip="{header>/ETA}"
                                                             placeholder="Enter Date"
                                                             displayFormat="MM/dd/yyyy"
                                                             valueFormat="MM/dd/yyyy"
@@ -745,7 +853,7 @@
                                                         <Label text="{ddtext>/HBL}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldHBL" value="{header>/HBL}" editable="false" change="onInputChange" />
+                                                        <Input id="fldHBL" value="{header>/HBL}" editable="false" change="onInputChange" tooltip="{header>/HBL}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -756,6 +864,7 @@
                                                         <DatePicker
                                                             id="fldHBLDT"
                                                             value="{header>/HBLDT}"
+                                                            tooltip="{header>/HBLDT}"
                                                             placeholder="Enter Date"
                                                             displayFormat="MM/dd/yyyy"
                                                             valueFormat="MM/dd/yyyy"
@@ -769,7 +878,7 @@
                                                         <Label text="{ddtext>/MBL}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldMBL" value="{header>/MBL}" editable="false" change="onInputChange" />
+                                                        <Input id="fldMBL" value="{header>/MBL}" editable="false" change="onInputChange" tooltip="{header>/MBL}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -780,6 +889,7 @@
                                                         <DatePicker
                                                             id="fldMBLDT"
                                                             value="{header>/MBLDT}"
+                                                            tooltip="{header>/MBLDT}"
                                                             placeholder="Enter Date"
                                                             displayFormat="MM/dd/yyyy"
                                                             valueFormat="MM/dd/yyyy"
@@ -797,6 +907,7 @@
                                                         <Input id="fldCONSIGN"
                                                             type="Text" 
                                                             value="{header>/CONSIGN}" 
+                                                            tooltip="{header>/CONSIGN}"
                                                             showValueHelp="true"
                                                             valueHelpRequest="handleFormValueHelp" 
                                                             showSuggestion="true" 
@@ -818,6 +929,7 @@
                                                         <Input id="fldMESSRS"
                                                             type="Text" 
                                                             value="{header>/MESSRS}" 
+                                                            tooltip="{header>/MESSRS}"
                                                             showValueHelp="true"
                                                             valueHelpRequest="handleFormValueHelp" 
                                                             showSuggestion="true" 
@@ -835,7 +947,7 @@
                                                         <Label text="{ddtext>/INVPRE}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldINVPRE" value="{header>/INVPRE}" editable="false" change="onInputChange" />
+                                                        <Input id="fldINVPRE" value="{header>/INVPRE}" editable="false" change="onInputChange" tooltip="{header>/INVPRE}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -843,7 +955,7 @@
                                                         <Label text="{ddtext>/INVNO}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldINVNO" value="{header>/INVNO}" editable="false" change="onInputChange" />
+                                                        <Input id="fldINVNO" value="{header>/INVNO}" editable="false" change="onInputChange" tooltip="{header>/INVNO}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -851,7 +963,7 @@
                                                         <Label text="{ddtext>/INVSUF}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldINVSUF" value="{header>/INVSUF}" editable="false" change="onInputChange" />
+                                                        <Input id="fldINVSUF" value="{header>/INVSUF}" editable="false" change="onInputChange" tooltip="{header>/INVSUF}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -862,6 +974,7 @@
                                                         <DatePicker
                                                             id="fldINVDT"
                                                             value="{header>/INVDT}"
+                                                            tooltip="{header>/INVDT}"
                                                             placeholder="Enter Date"
                                                             displayFormat="MM/dd/yyyy"
                                                             valueFormat="MM/dd/yyyy"
@@ -886,6 +999,8 @@
                                                                 parts: [{ path: 'header>/ACCTTYP' },{ value: 'acctyp' },{ value: 'ACCTTYP' },{ value: 'DESC1' },{ value: 'ValueKey' }],
                                                                 formatter: '.formatValueHelp'
                                                             }" 
+                                                            selectedKey="{header>/ACCTTYP}"
+                                                            tooltip="{header>/ACCTTYP}"
                                                             textFormatMode="ValueKey"	
                                                             showValueHelp="true"
                                                             valueHelpRequest="handleFormValueHelp" 
@@ -904,7 +1019,7 @@
                                                         <Label text="{ddtext>/IMPTR}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldIMPTR" value="{header>/IMPTR}" editable="false" change="onInputChange" />
+                                                        <Input id="fldIMPTR" value="{header>/IMPTR}" editable="false" change="onInputChange" tooltip="{header>/IMPTR}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -912,7 +1027,7 @@
                                                         <Label text="{ddtext>/EXPTR}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldEXPTR" value="{header>/EXPTR}" editable="false" change="onInputChange" />
+                                                        <Input id="fldEXPTR" value="{header>/EXPTR}" editable="false" change="onInputChange" tooltip="{header>/EXPTR}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -920,7 +1035,7 @@
                                                         <Label text="{ddtext>/FINLDEST}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldFINLDEST" value="{header>/FINLDEST}" editable="false" change="onInputChange" />
+                                                        <Input id="fldFINLDEST" value="{header>/FINLDEST}" editable="false" change="onInputChange" tooltip="{header>/FINLDEST}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -928,7 +1043,7 @@
                                                         <Label text="{ddtext>/CONTTYP}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldCONTTYP" value="{header>/CONTTYP}" editable="false" change="onInputChange" />
+                                                        <Input id="fldCONTTYP" value="{header>/CONTTYP}" editable="false" change="onInputChange" tooltip="{header>/CONTTYP}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -936,7 +1051,7 @@
                                                         <Label text="{ddtext>/CONTNO}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldCONTNO" value="{header>/CONTNO}" editable="false" change="onInputChange" />
+                                                        <Input id="fldCONTNO" value="{header>/CONTNO}" editable="false" change="onInputChange" tooltip="{header>/CONTNO}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -944,7 +1059,7 @@
                                                         <Label text="{ddtext>/SEALNO}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldSEALNO" value="{header>/SEALNO}" editable="false" change="onInputChange" />
+                                                        <Input id="fldSEALNO" value="{header>/SEALNO}" editable="false" change="onInputChange" tooltip="{header>/SEALNO}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -984,6 +1099,8 @@
                                                                 parts: [{ path: 'header>/WTUOM' },{ value: 'wtuom' },{ value: 'UOM' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
                                                                 formatter: '.formatValueHelp'
                                                             }" 
+                                                            selectedKey="{header>/WTUOM}"
+                                                            tooltip="{header>/WTUOM}"
                                                             textFormatMode="ValueKey"	
                                                             showValueHelp="true"
                                                             valueHelpRequest="handleFormValueHelp" 
@@ -1025,6 +1142,8 @@
                                                                 parts: [{ path: 'header>/VOLUOM' },{ value: 'voluom' },{ value: 'UOM' },{ value: 'DESCRIPTION' },{ value: 'ValueKey' }],
                                                                 formatter: '.formatValueHelp'
                                                             }" 
+                                                            selectedKey="{header>/VOLUOM}"
+                                                            tooltip="{header>/VOLUOM}"
                                                             textFormatMode="ValueKey"	
                                                             showValueHelp="true"
                                                             valueHelpRequest="handleFormValueHelp" 
@@ -1043,7 +1162,7 @@
                                                         <Label text="{ddtext>/NP1}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldNP1" value="{header>/NP1}" editable="false" change="onInputChange" />
+                                                        <Input id="fldNP1" value="{header>/NP1}" editable="false" change="onInputChange" tooltip="{header>/NP1}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -1051,7 +1170,7 @@
                                                         <Label text="{ddtext>/NP2}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldNP2" value="{header>/NP2}" editable="false" change="onInputChange" />
+                                                        <Input id="fldNP2" value="{header>/NP2}" editable="false" change="onInputChange" tooltip="{header>/NP2}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -1059,7 +1178,7 @@
                                                         <Label text="{ddtext>/NP3}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldNP3" value="{header>/NP3}" editable="false" change="onInputChange" />
+                                                        <Input id="fldNP3" value="{header>/NP3}" editable="false" change="onInputChange" tooltip="{header>/NP3}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -1067,7 +1186,7 @@
                                                         <Label text="{ddtext>/NP4}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldNP4" value="{header>/NP4}" editable="false" change="onInputChange" />
+                                                        <Input id="fldNP4" value="{header>/NP4}" editable="false" change="onInputChange" tooltip="{header>/NP4}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -1075,7 +1194,7 @@
                                                         <Label text="{ddtext>/EXPLICNO}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldEXPLICNO" value="{header>/EXPLICNO}" editable="false" change="onInputChange" />
+                                                        <Input id="fldEXPLICNO" value="{header>/EXPLICNO}" editable="false" change="onInputChange" tooltip="{header>/EXPLICNO}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement label="{ddtext>/EXPLICDT}">
@@ -1086,6 +1205,7 @@
                                                         <DatePicker
                                                             id="fldEXPLICDT"
                                                             value="{header>/EXPLICDT}"
+                                                            tooltip="{header>/EXPLICDT}" 
                                                             placeholder="Enter Date"
                                                             displayFormat="MM/dd/yyyy"
                                                             valueFormat="MM/dd/yyyy"
@@ -1099,7 +1219,7 @@
                                                         <Label text="{ddtext>/INSPOL}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldINSPOL" value="{header>/INSPOL}" editable="false" change="onInputChange" />
+                                                        <Input id="fldINSPOL" value="{header>/INSPOL}" editable="false" change="onInputChange" tooltip="{header>/INSPOL}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                                 <form:FormElement>
@@ -1107,7 +1227,7 @@
                                                         <Label text="{ddtext>/TCINVNO}" required="false"></Label>
                                                     </form:label>
                                                     <form:fields>
-                                                        <Input id="fldTCINVNO" value="{header>/TCINVNO}" editable="false" change="onInputChange" />
+                                                        <Input id="fldTCINVNO" value="{header>/TCINVNO}" editable="false" change="onInputChange" tooltip="{header>/TCINVNO}" />
                                                     </form:fields>
                                                 </form:FormElement>
                                             </form:formElements>
@@ -1120,6 +1240,7 @@
                             <uiT:Table id="delvDtlTab"
                                 class="sapUiTinyMarginBottom sapUiTinyMarginBegin sapUiTinyMarginEnd"
                                 visibleRowCountMode="Auto"
+                                minAutoRowCount="1"
                                 showColumnVisibilityMenu="true"
                                 enableColumnFreeze="true"
                                 selectionMode="None"
@@ -1136,14 +1257,18 @@
                                     <uiT:RowSettings highlight="{= ${EDITED} === true ? 'Warning' : null}" />
                                 </uiT:rowSettingsTemplate>
                                 <uiT:extension>
-                                    <Toolbar>
+                                    <OverflowToolbar>
                                         <Text text="{counts>/dlvdtls} {ddtext>/ITEMS}" />
                                         <ToolbarSpacer/>
                                         <Button id="btnEditDelvDtl" 
                                             icon="sap-icon://edit"
                                             press="onEdit"
                                             tooltip="{ddtext>/EDIT}"
-                                            visible="true"/>
+                                            visible="true" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="delvDtlTab" />
+                                            </customData>
+                                        </Button>
                                         <Button id="btnRefreshDelvDtl" 
                                             icon="sap-icon://refresh"
                                             press="onRefresh"
@@ -1157,12 +1282,20 @@
                                             icon="sap-icon://save"
                                             press="onSave"
                                             tooltip="{ddtext>/SAVE}"
-                                            visible="false"/>
+                                            visible="false" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="delvDtlTab" />
+                                            </customData>
+                                        </Button>
                                         <Button id="btnCancelDelvDtl" 
                                             icon="sap-icon://sys-cancel"
                                             press="onCancel"
                                             tooltip="{ddtext>/CANCEL}"
-                                            visible="false"/>
+                                            visible="false" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="delvDtlTab" />
+                                            </customData> 
+                                        </Button>
                                         <Button id="btnFullScreenDelvDtl" 
                                             icon="sap-icon://full-screen"
                                             press="onTableResize"
@@ -1181,7 +1314,7 @@
                                                 <core:CustomData key="Max" value="0" />
                                             </customData>
                                         </Button>
-                                    </Toolbar>
+                                    </OverflowToolbar>
                                 </uiT:extension> 
                             </uiT:Table>
                         </IconTabFilter>
@@ -1189,6 +1322,7 @@
                             <uiT:Table id="delvStatTab"
                                 class="sapUiTinyMarginBottom sapUiTinyMarginBegin sapUiTinyMarginEnd"
                                 visibleRowCountMode="Auto"
+                                minAutoRowCount="1"
                                 showColumnVisibilityMenu="true"
                                 enableColumnFreeze="true"
                                 selectionMode="None"
@@ -1202,7 +1336,7 @@
                                 columnSelect="onColumnUpdated"
                                 columnVisibility="onColumnUpdated">
                                 <uiT:extension>
-                                    <Toolbar>
+                                    <OverflowToolbar>
                                         <Text text="{counts>/dlvstat} {ddtext>/ITEMS}" />
                                         <ToolbarSpacer/>
                                         <Button id="btnRefreshDelvStat" 
@@ -1232,7 +1366,7 @@
                                                 <core:CustomData key="Max" value="0" />
                                             </customData>
                                         </Button>
-                                    </Toolbar>
+                                    </OverflowToolbar>
                                 </uiT:extension>                            
                             </uiT:Table>
                         </IconTabFilter>

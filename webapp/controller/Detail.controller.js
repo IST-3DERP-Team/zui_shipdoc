@@ -69,6 +69,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             this.byId("fldNETWT").addEventDelegate(oFormInputEventDelegate);
             this.byId("fldVOLUME").addEventDelegate(oFormInputEventDelegate);
 
+            if (this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv === undefined) {
+                var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+                oRouter.navTo("RouteMain", {}, true /*no history*/);
+                return;
+            }
+
             const route = this.getOwnerComponent().getRouter().getRoute("RouteDetail");
             route.attachPatternMatched(this.onPatternMatched, this);
         },
@@ -80,7 +86,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             this._aColumns = [];
             this._aDataBeforeChange = [];
             this._oDataBeforeChange = {};
-            this._sActiveTable = "";
+            this._sActiveTable = "delvHdrForm";
             this._validationErrors = [];
             this._aColFilters = [];
             this._aColSorters = [];
@@ -97,12 +103,14 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().status), "status");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().issplant), "issplant");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().shiptocust), "shiptocust");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().soldtocust), "soldtocust");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().salesterm), "salesterm");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().wtuom), "wtuom");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().voluom), "voluom");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().dest), "dest");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().consign), "consign");
             this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().acctyp), "acctyp");
+            this.getView().setModel(new JSONModel(this.getOwnerComponent().getModel("LOOKUP_MODEL").getData().custgrp), "custgrp");
 
             //update list of ship mode
             this._oModel.read("/ShipModeSHSet", {
@@ -134,6 +142,23 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 success: function (oData, oResponse) {
                     me.getView().getModel("shiptocust").setProperty("/", oData.results);
                     // me.getView().setModel(new JSONModel(oData.results), "shiptocust");
+
+                    var oSoldToCust = [];
+
+                    oData.results.forEach(item => {
+                        if (item.CUSTGRP !== "") {
+                            oSoldToCust.push(item);
+                        }
+                    })
+
+                    me.getView().getModel("soldtocust").setProperty("/", oSoldToCust);
+                },
+                error: function (err) { }
+            });
+
+            this._oModel.read("/CustGrpSHSet", {
+                success: function (oData, oResponse) {
+                    me.getView().getModel("custgrp").setProperty("/", oData.results);
                 },
                 error: function (err) { }
             });
@@ -375,21 +400,13 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             });
 
             me.getColumnProp();
-
         },
 
         onNavBack: function(oEvent) {
-            console.log("navback");
-            this.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", this._oLock);
-            // var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
-            // oRouter.navTo("RouteMain", {}, true /*no history*/);
-
-            // this.setRowReadMode("header");
-            // this.setRowReadMode("detail");            
+            this.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", this._oLock);          
         },
 
         onExit: function(oEvent) {
-            console.log("onAppExit");
             if (me._oLock.length > 0) { me.unLock(); }
         },
 
@@ -416,7 +433,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
             this._oModelCommon.read("/ColumnsSet", {
                 success: function (oData) {
-                    // console.log(oData)
                     if (sTabId === "") {
                         me._aColumns["delvHdr"] = oData.results;
                         me.formatFormInput(oData.results);
@@ -480,6 +496,21 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
                             if (oValue && oValue.length > 0) {
                                 return oValue[0].SHORTTEXT + " (" + sColumnId + ")";
+                            }
+                            else return sColumnId;
+                        }
+                    });
+                }
+                else if (sColumnId === "CUSTSHIPTO" || sColumnId === "SOLDTOCUST") {
+                    oText.bindText({  
+                        parts: [  
+                            { path: sColumnId }
+                        ],  
+                        formatter: function(sColumnId) {
+                            var oValue = me.getView().getModel("shiptocust").getData().filter(v => v.CUSTOMER === sColumnId);
+
+                            if (oValue && oValue.length > 0) {
+                                return oValue[0].NAME1 + " (" + sColumnId + ")";
                             }
                             else return sColumnId;
                         }
@@ -559,7 +590,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 var columnType = oColumn[0].DataType;
 
                 if (columnType === "DATETIME") {
-                    oSorter.fnCompare = function(a, b) {
+                    onSorter.fnCompare = function(a, b) {
                         // parse to Date object
                         var aDate = new Date(a);
                         var bDate = new Date(b);
@@ -797,79 +828,89 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 }
             })
         },
-
-        onCreate: async function (oEvent) {
-            var oTable = oEvent.getSource().oParent.oParent;
-
-            var bProceed = await this.lock(this);
-            if (!bProceed) return;
-
-            this._aDataBeforeChange = jQuery.extend(true, [], oTable.getModel().getData().rows);
-            this._addToDelvSched = [];
-
-            if (oTable.getId().indexOf("delvSchedTab") >= 0) {
-                //get fragment data
-                Common.openProcessingDialog(me, "Processing...");
-
-                this._sActiveTable = "delvSchedTab";
-                // this.byId("delvSchedTab").getModel().setProperty("/rows", []);
-                // this.byId("delvSchedTab").bindRows("/rows");
-
-                var vMultiSoldTo = this.getView().byId("fldMULTISOLDTO").getSelected();
-                var vSoldToCust = vMultiSoldTo ? "MULTIXYZ" : this.getView().byId("fldSOLDTOCUST").getValue();
-
-                this._oModel.setHeaders({
-                    plant: this.getView().byId("fldISSPLNT").getValue(),
-                    custcd: vSoldToCust
-                })
-
-                this._oModel.read('/IODelvSet', {
-                    success: function (oData) {                           
-                        Common.closeProcessingDialog(me);
-
-                        oData.results.forEach((item, index) => {
-                            if (item.CPODT !== "") item.CPODT = dateFormat.format(item.CPODT);
-                            if (item.DLVDT !== "") item.DLVDT = dateFormat.format(item.DLVDT);
-                            if (item.REVDLVDT !== "") item.REVDLVDT = dateFormat.format(item.REVDLVDT);
-                            item.CPOITEM = item.CPOITEM + "";
-                            item.CPOREV = item.CPOREV + "";
-                            item.DLVSEQ = item.DLVSEQ + "";
-                            item.ROWINDEX = index;
-                            item.DLVNO = me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv;
-                        })
-
-                        if (!me._AddDelvSchedDialog) {
-                            me._AddDelvSchedDialog = sap.ui.xmlfragment("zuishipdoc.view.fragments.dialog.AddDelvSchedDialog", me);
         
-                            me._AddDelvSchedDialog.setModel(
-                                new JSONModel({
-                                    rows: oData.results,
-                                    rowCount: oData.results.length > 13 ? oData.results.length : 13
-                                })
-                            )
-        
-                            me.getView().addDependent(me._AddDelvSchedDialog);
+        onCreate: function (oEvent) {
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            this.createData();
+        },
+
+        async createData() { 
+            if (this._dataMode === "READ") {
+                if (this.getView().byId("fldSTATUS").getSelectedKey() !== "50") {
+                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_SHIPDOC_CHANGE_NOT_ALLOW"]);
+                    return;
+                }
+
+                var oTable = this.byId(this._sActiveTable);
+
+                var bProceed = await this.lock(this);
+                if (!bProceed) return;
+    
+                this._aDataBeforeChange = jQuery.extend(true, [], oTable.getModel().getData().rows);
+                this._addToDelvSched = [];
+    
+                if (this._sActiveTable === "delvSchedTab") {
+                    //get fragment data
+                    Common.openProcessingDialog(me, "Processing...");
+    
+                    var vMultiSoldTo = this.getView().byId("fldMULTISOLDTO").getSelected();
+                    var vSoldToCust = vMultiSoldTo ? "MULTIXYZ" : this.getView().byId("fldSOLDTOCUST").getSelectedKey();
+
+                    this._oModel.setHeaders({
+                        plant: this.getView().byId("fldISSPLNT").getSelectedKey(),
+                        custcd: vSoldToCust
+                    })
+                    console.log(this._oModel)
+                    this._oModel.read('/IODelvSet', {
+                        success: function (oData) {                           
+                            Common.closeProcessingDialog(me);
+                            console.log(oData.results)
+                            oData.results.forEach((item, index) => {
+                                if (item.CPODT !== "") item.CPODT = dateFormat.format(item.CPODT);
+                                if (item.DLVDT !== "") item.DLVDT = dateFormat.format(item.DLVDT);
+                                if (item.REVDLVDT !== "") item.REVDLVDT = dateFormat.format(item.REVDLVDT);
+                                item.CPOITEM = item.CPOITEM + "";
+                                item.CPOREV = item.CPOREV + "";
+                                item.DLVSEQ = item.DLVSEQ + "";
+                                item.ROWINDEX = index;
+                                item.DLVNO = me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv;
+                            })
+    
+                            if (!me._AddDelvSchedDialog) {
+                                me._AddDelvSchedDialog = sap.ui.xmlfragment("zuishipdoc.view.fragments.dialog.AddDelvSchedDialog", me);
+            
+                                me._AddDelvSchedDialog.setModel(
+                                    new JSONModel({
+                                        rows: oData.results,
+                                        rowCount: oData.results.length > 13 ? oData.results.length : 13,
+                                        recCount: oData.results.length
+                                    })
+                                )
+            
+                                me.getView().addDependent(me._AddDelvSchedDialog);
+                            }
+                            else {
+                                me._AddDelvSchedDialog.getModel().setProperty("/rows", oData.results);
+                                me._AddDelvSchedDialog.getModel().setProperty("/rowCount", oData.results.length > 13 ? oData.results.length : 13);
+                                me._AddDelvSchedDialog.getModel().setProperty("/recCount", oData.results.length);
+                            }
+            
+                            me._AddDelvSchedDialog.getContent()[0].removeSelectionInterval(0, oData.results.length - 1);
+    
+                            //open fragment
+                            me._AddDelvSchedDialog.open();
+                            me._dataMode = "NEW";
+                            if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(true); }
+                        },
+                        error: function (err) {
+                            Common.closeProcessingDialog(me);
+                            me.unLock();
                         }
-                        else {
-                            me._AddDelvSchedDialog.getModel().setProperty("/rows", oData.results);
-                            me._AddDelvSchedDialog.getModel().setProperty("/rowCount", oData.results.length);
-                        }
-        
-                        me._AddDelvSchedDialog.getContent()[0].removeSelectionInterval(0, oData.results.length - 1);
-
-                        //open fragment
-                        me._AddDelvSchedDialog.open();
-                        me._dataMode = "NEW";
-                        if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(true); }
-                    },
-                    error: function (err) {
-                        Common.closeProcessingDialog(me);
-                        me.unLock();
+                    })
+    
+                    if (this.byId("delvSchedTab").getBinding("rows").aSorters.length > 0) {
+                        this._aColSorters = this.byId("delvSchedTab").getBinding("rows").aSorters;
                     }
-                })
-
-                if (this.byId("delvSchedTab").getBinding("rows").aSorters.length > 0) {
-                    this._aColSorters = this.byId("delvSchedTab").getBinding("rows").aSorters;
                 }
             }
         },
@@ -886,386 +927,412 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             }
         },
 
-        onEdit: async function(oEvent) {
-            var obj = oEvent.getSource().oParent.oParent;
+        onEdit: function(oEvent) {
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            this.editData();
+        },
 
-            var bProceed = await this.lock(this);
-            if (!bProceed) return;
-            
-            if (obj.getId().indexOf("delvHdrForm") >= 0) {
-                this._oDataBeforeChange = jQuery.extend(true, {}, this.getView().getModel("header").getData());
-                this.setHeaderFieldsEditable(true);
-                this._sActiveTable = "delvHdrForm";
-                this._bHeaderChanged = false;
+        async editData() {
+            if (this._dataMode === "READ") {
+                var oTable = this.byId(this._sActiveTable);
 
-                this.getView().byId("btnEditHdr").setVisible(false);
-                this.getView().byId("btnRefreshHdr").setVisible(false);
-                this.getView().byId("btnSaveHdr").setVisible(true);
-                this.getView().byId("btnCancelHdr").setVisible(true);
-                this.getView().byId("btnComplete").setVisible(false);              
-
-                var oIconTabBar = this.byId("itbDetail");
-                oIconTabBar.getItems().forEach(item => item.setProperty("enabled", false));  
-            }
-            else if (obj.getId().indexOf("shipDtlForm") >= 0) {
-                this._oDataBeforeChange = jQuery.extend(true, {}, this.getView().getModel("header").getData());
-                this.setShipDetailFieldsEditable(true);
-                this._sActiveTable = "shipDtlForm";
-                this._bHeaderChanged = false;
-
-                this.getView().byId("btnEditShipDtl").setVisible(false);
-                this.getView().byId("btnRefreshShipDtl").setVisible(false);
-                this.getView().byId("btnSaveShipDtl").setVisible(true);
-                this.getView().byId("btnCancelShipDtl").setVisible(true);                
-
-                this.getView().byId("btnEditHdr").setEnabled(false);
-                this.getView().byId("btnRefreshHdr").setEnabled(false);
-                this.getView().byId("btnComplete").setEnabled(false);
-
-                var oIconTabBar = this.byId("itbDetail");
-                oIconTabBar.getItems().filter(item => item.getProperty("key") !== oIconTabBar.getSelectedKey())
-                    .forEach(item => item.setProperty("enabled", false));                
-            }
-            else if (obj.getId().indexOf("delvDtlTab") >= 0) {
-                if (obj.getModel().getData().rows.length === 0) {
-                    me.unLock();
+                if (this._sActiveTable === "delvDtlTab" && oTable.getModel().getData().rows.length === 0) {
                     MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_DATA_EDIT"]);
                     return;
                 }
 
-                this._aDataBeforeChange = jQuery.extend(true, [], obj.getModel().getData().rows);
-                this._sActiveTable = "delvDtlTab";
-                this._bDelvDtlChanged = false;
-
-                this.getView().byId("btnEditDelvDtl").setVisible(false);
-                this.getView().byId("btnRefreshDelvDtl").setVisible(false);
-                this.getView().byId("btnSaveDelvDtl").setVisible(true);
-                this.getView().byId("btnCancelDelvDtl").setVisible(true);
-
-                this.getView().byId("btnEditHdr").setEnabled(false);
-                this.getView().byId("btnRefreshHdr").setEnabled(false);
-                this.getView().byId("btnComplete").setEnabled(false);
-
-                var oIconTabBar = this.byId("itbDetail");
-                oIconTabBar.getItems().filter(item => item.getProperty("key") !== oIconTabBar.getSelectedKey())
-                    .forEach(item => item.setProperty("enabled", false));  
-
-                if (this.byId("delvDtlTab").getBinding("rows").aFilters.length > 0) {
-                    this._aColFilters = this.byId("delvDtlTab").getBinding("rows").aFilters;
+                if (this.getView().byId("fldSTATUS").getSelectedKey() !== "50") {
+                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_SHIPDOC_CHANGE_NOT_ALLOW"]);
+                    return;
                 }
 
-                if (this.byId("delvDtlTab").getBinding("rows").aSorters.length > 0) {
-                    this._aColSorters = this.byId("delvDtlTab").getBinding("rows").aSorters;
+                var bProceed = await this.lock(this);
+                if (!bProceed) return;
+                
+                if (this._sActiveTable === "delvHdrForm") {
+                    this._oDataBeforeChange = jQuery.extend(true, {}, this.getView().getModel("header").getData());
+                    this.setHeaderFieldsEditable(true);
+                    this._bHeaderChanged = false;
+    
+                    this.getView().byId("btnEditHdr").setVisible(false);
+                    this.getView().byId("btnRefreshHdr").setVisible(false);
+                    this.getView().byId("btnSaveHdr").setVisible(true);
+                    this.getView().byId("btnCancelHdr").setVisible(true);
+                    this.getView().byId("btnComplete").setVisible(false);              
+    
+                    var oIconTabBar = this.byId("itbDetail");
+                    oIconTabBar.getItems().forEach(item => item.setProperty("enabled", false));  
                 }
-
-                this.setRowEditMode();
+                else if (this._sActiveTable === "shipDtlForm") {
+                    this._oDataBeforeChange = jQuery.extend(true, {}, this.getView().getModel("header").getData());
+                    this.setShipDetailFieldsEditable(true);
+                    this._bHeaderChanged = false;
+    
+                    this.getView().byId("btnEditShipDtl").setVisible(false);
+                    this.getView().byId("btnRefreshShipDtl").setVisible(false);
+                    this.getView().byId("btnSaveShipDtl").setVisible(true);
+                    this.getView().byId("btnCancelShipDtl").setVisible(true);                
+    
+                    this.getView().byId("btnEditHdr").setEnabled(false);
+                    this.getView().byId("btnRefreshHdr").setEnabled(false);
+                    this.getView().byId("btnComplete").setEnabled(false);
+    
+                    var oIconTabBar = this.byId("itbDetail");
+                    oIconTabBar.getItems().filter(item => item.getProperty("key") !== oIconTabBar.getSelectedKey())
+                        .forEach(item => item.setProperty("enabled", false));                
+                }
+                else if (this._sActiveTable === "delvDtlTab") {
+                    if (oTable.getModel().getData().rows.length === 0) {
+                        me.unLock();
+                        MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_DATA_EDIT"]);
+                        return;
+                    }
+    
+                    this._aDataBeforeChange = jQuery.extend(true, [], oTable.getModel().getData().rows);
+                    this._bDelvDtlChanged = false;
+    
+                    this.getView().byId("btnEditDelvDtl").setVisible(false);
+                    this.getView().byId("btnRefreshDelvDtl").setVisible(false);
+                    this.getView().byId("btnSaveDelvDtl").setVisible(true);
+                    this.getView().byId("btnCancelDelvDtl").setVisible(true);
+    
+                    this.getView().byId("btnEditHdr").setEnabled(false);
+                    this.getView().byId("btnRefreshHdr").setEnabled(false);
+                    this.getView().byId("btnComplete").setEnabled(false);
+    
+                    var oIconTabBar = this.byId("itbDetail");
+                    oIconTabBar.getItems().filter(item => item.getProperty("key") !== oIconTabBar.getSelectedKey())
+                        .forEach(item => item.setProperty("enabled", false));  
+    
+                    if (this.byId("delvDtlTab").getBinding("rows").aFilters.length > 0) {
+                        this._aColFilters = this.byId("delvDtlTab").getBinding("rows").aFilters;
+                    }
+    
+                    if (this.byId("delvDtlTab").getBinding("rows").aSorters.length > 0) {
+                        this._aColSorters = this.byId("delvDtlTab").getBinding("rows").aSorters;
+                    }
+    
+                    this.setRowEditMode();
+                }
+    
+                this._validationErrors = [];
+                this._dataMode = "EDIT";
             }
-
-            this._validationErrors = [];
-            this._dataMode = "EDIT";
         },
 
         onCancel: function(oEvent) {
-            var obj = oEvent.getSource().oParent.oParent;
-            var oData = {};
-            var bChanged = true;
-
-            if (obj.getId().indexOf("delvHdrForm") >= 0) {
-                if (this._dataMode === "NEW") { bChanged = true; }
-                else { bChanged = this._bHeaderChanged; }
-
-                oData = {
-                    Process: "header-cancel",
-                    Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
-                }
-
-                // this.setHeaderFieldsEditable(false);
-
-                // this.getView().byId("btnEditHdr").setVisible(true);
-                // this.getView().byId("btnSaveHdr").setVisible(false);
-                // this.getView().byId("btnCancelHdr").setVisible(false);
-
-                // this.getView().byId("btnEditShipDtl").setEnabled(true);
-                // this.getView().byId("btnAddDelvSched").setEnabled(true);
-                // this.getView().byId("btnDeleteDelvSched").setEnabled(true);
-                // this.getView().byId("btnCompleteDelvSched").setEnabled(true);
-                // this.getView().byId("btnRefreshDelvSched").setEnabled(true);
-            }
-            else if (obj.getId().indexOf("shipDtlForm") >= 0) {
-                bChanged = this._bHeaderChanged;
-                
-                oData = {
-                    Process: "shipdtl-cancel",
-                    Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
-                }
-
-                // this.setShipDetailFieldsEditable(false);
-
-                // this.getView().byId("btnEditShipDtl").setVisible(true);
-                // this.getView().byId("btnSaveShipDtl").setVisible(false);
-                // this.getView().byId("btnCancelShipDtl").setVisible(false);
-
-                // this.getView().byId("btnEditHdr").setEnabled(true);
-            }
-            else if (obj.getId().indexOf("delvSchedTab") >= 0) {
-                if (obj.getModel().getData().rows.length === 0) { bChanged = false }
-
-                oData = {
-                    Process: "delvsched-cancel",
-                    Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
-                }
-
-                // var oTable = obj;
-
-                // this.getView().byId("btnAddDelvSched").setVisible(true);
-                // this.getView().byId("btnDeleteDelvSched").setVisible(true);
-                // this.getView().byId("btnCompleteDelvSched").setVisible(true);
-                // this.getView().byId("btnRefreshDelvSched").setVisible(true);
-                // this.getView().byId("btnAddNewDelvSched").setVisible(false);
-                // this.getView().byId("btnRemoveNewDelvSched").setVisible(false);
-                // this.getView().byId("btnSavedDelvSched").setVisible(false);
-                // this.getView().byId("btnCancelDelvSched").setVisible(false);
-
-                // this.getView().byId("btnEditHdr").setEnabled(true);
-                // oTable.getModel().setProperty("/rows", this._aDataBeforeChange);
-                // oTable.bindRows("/rows");
-            }
-            else if (obj.getId().indexOf("delvDtlTab") >= 0) {
-                bChanged = this._bDelvDtlChanged;
-
-                oData = {
-                    Process: "delvdtl-cancel",
-                    Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
-                }
-            }
-
-            if (!this._ConfirmDialog) {
-                this._ConfirmDialog = sap.ui.xmlfragment("zuishipdoc.view.fragments.dialog.ConfirmDialog", this);
-
-                this._ConfirmDialog.setModel(new JSONModel(oData));
-                this.getView().addDependent(this._ConfirmDialog);
-            }
-            else this._ConfirmDialog.setModel(new JSONModel(oData));
-                
-            if (bChanged) {
-                this._ConfirmDialog.open();
-            }
-            else {
-                if (obj.getId().indexOf("delvHdrForm") >= 0) {
-                    this.setHeaderFieldsEditable(false);
-
-                    this.getView().byId("btnEditHdr").setVisible(true);
-                    this.getView().byId("btnRefreshHdr").setVisible(true);
-                    this.getView().byId("btnSaveHdr").setVisible(false);
-                    this.getView().byId("btnCancelHdr").setVisible(false);
-                    this.getView().byId("btnComplete").setVisible(true);
-    
-                    this.getView().byId("btnEditShipDtl").setEnabled(true);
-                    this.getView().byId("btnRefreshShipDtl").setEnabled(true);
-                    this.getView().byId("btnAddDelvSched").setEnabled(true);
-                    this.getView().byId("btnDeleteDelvSched").setEnabled(true);
-                    // this.getView().byId("btnCompleteDelvSched").setEnabled(true);
-                    this.getView().byId("btnRefreshDelvSched").setEnabled(true);
-    
-                    var oHeaderData = this._oDataBeforeChange;
-                    this.getView().setModel(new JSONModel(oHeaderData), "header");
-                }
-                else if (obj.getId().indexOf("shipDtlForm") >= 0) {
-                    this.setShipDetailFieldsEditable(false);
-
-                    this.getView().byId("btnEditShipDtl").setVisible(true);
-                    this.getView().byId("btnRefreshShipDtl").setVisible(true);
-                    this.getView().byId("btnSaveShipDtl").setVisible(false);
-                    this.getView().byId("btnCancelShipDtl").setVisible(false);
-    
-                    this.getView().byId("btnEditHdr").setEnabled(true);
-                    this.getView().byId("btnRefreshHdr").setEnabled(true);
-                    this.getView().byId("btnComplete").setEnabled(true);
-    
-                    var oHeaderData = this._oDataBeforeChange;
-                    this.getView().setModel(new JSONModel(oHeaderData), "header");                    
-                }
-                else if (obj.getId().indexOf("delvSchedTab") >= 0) {
-                    var oTable = this.byId("delvSchedTab");
-
-                    this.getView().byId("btnAddDelvSched").setVisible(true);
-                    this.getView().byId("btnDeleteDelvSched").setVisible(true);
-                    // this.getView().byId("btnCompleteDelvSched").setVisible(true);
-                    this.getView().byId("btnRefreshDelvSched").setVisible(true);
-                    this.getView().byId("btnAddNewDelvSched").setVisible(false);
-                    this.getView().byId("btnRemoveNewDelvSched").setVisible(false);
-                    this.getView().byId("btnSavedDelvSched").setVisible(false);
-                    this.getView().byId("btnCancelDelvSched").setVisible(false);
-    
-                    this.getView().byId("btnEditHdr").setEnabled(true);
-                    this.getView().byId("btnRefreshHdr").setEnabled(true);
-                    this.getView().byId("btnComplete").setEnabled(true);
-                    
-                    oTable.getModel().setProperty("/rows", this._aDataBeforeChange);
-                    oTable.bindRows("/rows");
-    
-                    // if (this._aColFilters.length > 0) { this.setColumnFilters("delvSchedTab"); }
-                    if (this._aColSorters.length > 0) { this.setColumnSorters("delvSchedTab"); }  
-                    TableFilter.applyColFilters("delvSchedTab", me);                    
-                }
-                else if (obj.getId().indexOf("delvDtlTab") >= 0) {
-                    var oTable = this.byId("delvDtlTab");
-
-                    this.getView().byId("btnEditDelvDtl").setVisible(true);
-                    this.getView().byId("btnRefreshDelvDtl").setVisible(true);
-                    this.getView().byId("btnSaveDelvDtl").setVisible(false);
-                    this.getView().byId("btnCancelDelvDtl").setVisible(false);
-    
-                    this.getView().byId("btnEditHdr").setEnabled(true);
-                    this.getView().byId("btnRefreshHdr").setEnabled(true);
-                    this.getView().byId("btnComplete").setEnabled(true);
-    
-                    this.setRowReadMode();
-                    
-                    oTable.getModel().setProperty("/rows", this._aDataBeforeChange);
-                    oTable.bindRows("/rows");
-    
-                    if (this._aColSorters.length > 0) { this.setColumnSorters("delvDtlTab"); }
-                    TableFilter.applyColFilters("delvDtlTab", me);                    
-                }
-
-                var oIconTabBar = me.byId("itbDetail");
-                oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
-
-                this._ConfirmDialog.close();
-
-                if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
-
-                if (this._ConfirmDialog.getModel().getData().Process === "header-cancel" && this._dataMode === "NEW") {
-                    var oHistory, sPreviousHash;
-                
-                    if (sap.ui.core.routing.History !== undefined) {
-                        oHistory = sap.ui.core.routing.History.getInstance();
-                        sPreviousHash = oHistory.getPreviousHash();
-                    }
-        
-                    if (sPreviousHash !== undefined) {
-                        window.history.go(-1);
-                    } else { 
-                        var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
-                        oRouter.navTo("RouteMain", {}, true /*no history*/);
-                    }
-                }
-                else { this.unLock(); }
-
-                this._dataMode = "READ";
-            }
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            this.cancelData();  
         },
 
+        cancelData() {
+            if (this._dataMode === "EDIT" || this._dataMode === "NEW") {
+                var oTable = this.byId(this._sActiveTable);
+                var oData = {};
+                var bChanged = true;
+
+                if (this._sActiveTable === "delvHdrForm") {
+                    if (this._dataMode === "NEW") { bChanged = true; }
+                    else { bChanged = this._bHeaderChanged; }
+
+                    oData = {
+                        Process: "header-cancel",
+                        Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
+                    }
+                }
+                else if (this._sActiveTable === "shipDtlForm") {
+                    bChanged = this._bHeaderChanged;
+                    
+                    oData = {
+                        Process: "shipdtl-cancel",
+                        Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
+                    }
+                }
+                else if (this._sActiveTable === "delvSchedTab") {
+                    if (oTable.getModel().getData().rows.length === 0) { bChanged = false }
+
+                    oData = {
+                        Process: "delvsched-cancel",
+                        Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
+                    }
+                }
+                else if (this._sActiveTable === "delvDtlTab") {
+                    bChanged = this._bDelvDtlChanged;
+
+                    oData = {
+                        Process: "delvdtl-cancel",
+                        Text: this.getView().getModel("ddtext").getData()["CONF_DISCARD_CHANGE"]
+                    }
+                }
+
+                if (!this._ConfirmDialog) {
+                    this._ConfirmDialog = sap.ui.xmlfragment("zuishipdoc.view.fragments.dialog.ConfirmDialog", this);
+
+                    this._ConfirmDialog.setModel(new JSONModel(oData));
+                    this.getView().addDependent(this._ConfirmDialog);
+                }
+                else this._ConfirmDialog.setModel(new JSONModel(oData));
+                    
+                if (bChanged) {
+                    this._ConfirmDialog.open();
+                }
+                else {
+                    if (this._sActiveTable === "delvHdrForm") {
+                        this.setHeaderFieldsEditable(false);
+
+                        this.getView().byId("btnEditHdr").setVisible(true);
+                        this.getView().byId("btnRefreshHdr").setVisible(true);
+                        this.getView().byId("btnSaveHdr").setVisible(false);
+                        this.getView().byId("btnCancelHdr").setVisible(false);
+                        this.getView().byId("btnComplete").setVisible(true);
+        
+                        this.getView().byId("btnEditShipDtl").setEnabled(true);
+                        this.getView().byId("btnRefreshShipDtl").setEnabled(true);
+                        this.getView().byId("btnAddDelvSched").setEnabled(true);
+                        this.getView().byId("btnDeleteDelvSched").setEnabled(true);
+                        this.getView().byId("btnRefreshDelvSched").setEnabled(true);
+        
+                        var oHeaderData = this._oDataBeforeChange;
+                        this.getView().setModel(new JSONModel(oHeaderData), "header");
+                    }
+                    else if (this._sActiveTable === "shipDtlForm") {
+                        this.setShipDetailFieldsEditable(false);
+
+                        this.getView().byId("btnEditShipDtl").setVisible(true);
+                        this.getView().byId("btnRefreshShipDtl").setVisible(true);
+                        this.getView().byId("btnSaveShipDtl").setVisible(false);
+                        this.getView().byId("btnCancelShipDtl").setVisible(false);
+        
+                        this.getView().byId("btnEditHdr").setEnabled(true);
+                        this.getView().byId("btnRefreshHdr").setEnabled(true);
+                        this.getView().byId("btnComplete").setEnabled(true);
+        
+                        var oHeaderData = this._oDataBeforeChange;
+                        this.getView().setModel(new JSONModel(oHeaderData), "header");                    
+                    }
+                    else if (this._sActiveTable === "delvSchedTab") {
+                        var oTable = this.byId("delvSchedTab");
+
+                        this.getView().byId("btnAddDelvSched").setVisible(true);
+                        this.getView().byId("btnDeleteDelvSched").setVisible(true);
+                        this.getView().byId("btnRefreshDelvSched").setVisible(true);
+                        this.getView().byId("btnAddNewDelvSched").setVisible(false);
+                        this.getView().byId("btnRemoveNewDelvSched").setVisible(false);
+                        this.getView().byId("btnSavedDelvSched").setVisible(false);
+                        this.getView().byId("btnCancelDelvSched").setVisible(false);
+        
+                        this.getView().byId("btnEditHdr").setEnabled(true);
+                        this.getView().byId("btnRefreshHdr").setEnabled(true);
+                        this.getView().byId("btnComplete").setEnabled(true);
+                        
+                        oTable.getModel().setProperty("/rows", this._aDataBeforeChange);
+                        oTable.bindRows("/rows");
+        
+                        if (this._aColSorters.length > 0) { this.setColumnSorters("delvSchedTab"); }  
+                        TableFilter.applyColFilters("delvSchedTab", me);                    
+                    }
+                    else if (this._sActiveTable === "delvDtlTab") {
+                        var oTable = this.byId("delvDtlTab");
+
+                        this.getView().byId("btnEditDelvDtl").setVisible(true);
+                        this.getView().byId("btnRefreshDelvDtl").setVisible(true);
+                        this.getView().byId("btnSaveDelvDtl").setVisible(false);
+                        this.getView().byId("btnCancelDelvDtl").setVisible(false);
+        
+                        this.getView().byId("btnEditHdr").setEnabled(true);
+                        this.getView().byId("btnRefreshHdr").setEnabled(true);
+                        this.getView().byId("btnComplete").setEnabled(true);
+        
+                        this.setRowReadMode();
+                        
+                        oTable.getModel().setProperty("/rows", this._aDataBeforeChange);
+                        oTable.bindRows("/rows");
+        
+                        if (this._aColSorters.length > 0) { this.setColumnSorters("delvDtlTab"); }
+                        TableFilter.applyColFilters("delvDtlTab", me);                    
+                    }
+
+                    var oIconTabBar = me.byId("itbDetail");
+                    oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
+
+                    this._ConfirmDialog.close();
+
+                    if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
+
+                    if (this._ConfirmDialog.getModel().getData().Process === "header-cancel" && this._dataMode === "NEW") {
+                        var oHistory, sPreviousHash;
+                    
+                        if (sap.ui.core.routing.History !== undefined) {
+                            oHistory = sap.ui.core.routing.History.getInstance();
+                            sPreviousHash = oHistory.getPreviousHash();
+                        }
+            
+                        if (sPreviousHash !== undefined) {
+                            window.history.go(-1);
+                        } else { 
+                            var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+                            oRouter.navTo("RouteMain", {}, true /*no history*/);
+                        }
+                    }
+                    else { this.unLock(); }
+
+                    this._dataMode = "READ";
+                }
+            }
+        },     
+
         onSave: function(oEvent) {  
-            var obj = oEvent.getSource().oParent.oParent;
-            var oParam = {};
-            var bProceed = true;
-            // console.log(this.getView().byId("fldEVERS").getValue());
-            // console.log(this.getView().byId("fldEVERS"));
-            // console.log(this.getView().byId("fldEVERS").getSelectedKey());
-            // console.log(this.getView().byId("fldEVERS").getSelectedItem());
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            this.batchSaveData();  
+        },
 
-            if (obj.getId().indexOf("delvHdrForm") >= 0) {
-                if (!this._bHeaderChanged) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_NO_DATA_MODIFIED"]);
-                    return;
-                }
+        batchSaveData() {
+            if (this._dataMode === "EDIT" || this._dataMode === "NEW") {
+                var oTable = this.byId(this._sActiveTable);
+                var oParam = {};
+                var bProceed = true;
 
-                if (this._validationErrors.length > 0) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_ENTRIES"]);
-                    return;
-                }
+                if (this._sActiveTable === "delvHdrForm") {
+                    if (!this._bHeaderChanged) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_NO_DATA_MODIFIED"]);
+                        return;
+                    }
 
-                this.byId("headerForm").getFormContainers().forEach(item => {
-                    item.getFormElements().forEach(e => {
-                        var sFieldName = "";
-    
-                        if (e.getFields()[0].getBindingInfo("value") !== undefined) {
-                            sFieldName = e.getFields()[0].getBindingInfo("value").parts[0].path.replace("/","");
-                        }
-                        else if (e.getFields()[0].getBindingInfo("selected") !== undefined) {
-                            sFieldName = "";
-                        }
-    
-                        if (sFieldName !== "") {
-                            var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
+                    if (this._validationErrors.length > 0) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_ENTRIES"]);
+                        return;
+                    }
 
-                            if (oColumn[0].Mandatory && e.getFields()[0].getProperty("value") === "") {
-                                bProceed = false;
-                            } 
-                        }
+                    this.byId("headerForm").getFormContainers().forEach(item => {
+                        item.getFormElements().forEach(e => {
+                            var sFieldName = "";
+        
+                            if (e.getFields()[0].getBindingInfo("value") !== undefined) {
+                                sFieldName = e.getFields()[0].getBindingInfo("value").parts[0].path.replace("/","");
+                            }
+                            else if (e.getFields()[0].getBindingInfo("selected") !== undefined) {
+                                sFieldName = "";
+                            }
+        
+                            if (sFieldName !== "") {
+                                var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
+                                if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
+                                    bProceed = false;
+                                } 
+                            }
+                        })
                     })
-                })
-                
-                if (!bProceed) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_INPUT_REQD_FIELDS"]);
-                    return;
-                }
+                    
+                    if (!bProceed) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_INPUT_REQD_FIELDS"]);
+                        return;
+                    }
 
-                Common.openProcessingDialog(this);
+                    Common.openProcessingDialog(this);
 
-                oParam["ISSPLNT"] = this.getView().byId("fldISSPLNT").getValue();
-                oParam["SOLDTOCUST"] = this.getView().byId("fldSOLDTOCUST").getValue();
-                oParam["BILLTOCUST"] = this.getView().byId("fldBILLTOCUST").getValue();
-                oParam["CUSTGRP"] = this.getView().byId("fldCUSTGRP").getValue();
-                oParam["SALESTERM"] = this.getView().byId("fldSALESTERM").getSelectedKey();
-                oParam["SALESTERMTEXT"] = this.getView().byId("fldSALESTERMTEXT").getValue();
-                oParam["DOCDT"] = sapDateFormat.format(new Date(this.getView().byId("fldDOCDT").getValue())) + "T00:00:00"; //"2023-01-26T00:00:00"; //
-                oParam["POSTDT"] = sapDateFormat.format(new Date(this.getView().byId("fldPOSTDT").getValue())) + "T00:00:00"; 
-                oParam["EVERS"] = this.getView().byId("fldEVERS").getSelectedKey();
-                oParam["DEST"] = this.getView().byId("fldDEST").getValue();
-                oParam["COO"] = this.getView().byId("fldCOO").getValue();
-                oParam["REFDOCNO"] = this.getView().byId("fldREFDOCNO").getValue();
-                oParam["STATUS"] = this.getView().byId("fldSTATUS").getSelectedKey();
-                oParam["REMARKS"] = this.getView().byId("fldREMARKS").getValue();
-                oParam["MULTISOLDTO"] = this.getView().byId("fldMULTISOLDTO").getSelected() === true ? "X" : "";
+                    oParam["ISSPLNT"] = this.getView().byId("fldISSPLNT").getSelectedKey();
+                    oParam["SOLDTOCUST"] = this.getView().byId("fldSOLDTOCUST").getSelectedKey();
+                    oParam["BILLTOCUST"] = this.getView().byId("fldBILLTOCUST").getSelectedKey();
+                    oParam["CUSTGRP"] = this.getView().byId("fldCUSTGRP").getSelectedKey();
+                    oParam["SALESTERM"] = this.getView().byId("fldSALESTERM").getSelectedKey();
+                    oParam["SALESTERMTEXT"] = this.getView().byId("fldSALESTERMTEXT").getValue();
+                    oParam["DOCDT"] = sapDateFormat.format(new Date(this.getView().byId("fldDOCDT").getValue())) + "T00:00:00"; //"2023-01-26T00:00:00"; //
+                    oParam["POSTDT"] = sapDateFormat.format(new Date(this.getView().byId("fldPOSTDT").getValue())) + "T00:00:00"; 
+                    oParam["EVERS"] = this.getView().byId("fldEVERS").getSelectedKey();
+                    oParam["DEST"] = this.getView().byId("fldDEST").getSelectedKey();
+                    oParam["COO"] = this.getView().byId("fldCOO").getValue();
+                    oParam["REFDOCNO"] = this.getView().byId("fldREFDOCNO").getValue();
+                    oParam["STATUS"] = this.getView().byId("fldSTATUS").getSelectedKey();
+                    oParam["REMARKS"] = this.getView().byId("fldREMARKS").getValue();
+                    oParam["MULTISOLDTO"] = this.getView().byId("fldMULTISOLDTO").getSelected() === true ? "X" : "";
 
-                if (this.getView().byId("fldPLANDLVDT").getValue() !== "") {
-                    oParam["PLANDLVDT"] = sapDateFormat.format(new Date(this.getView().byId("fldPLANDLVDT").getValue())) + "T00:00:00";
-                } 
-                else { oParam["PLANDLVDT"] = null; }
+                    if (this.getView().byId("fldPLANDLVDT").getValue() !== "") {
+                        oParam["PLANDLVDT"] = sapDateFormat.format(new Date(this.getView().byId("fldPLANDLVDT").getValue())) + "T00:00:00";
+                    } 
+                    else { oParam["PLANDLVDT"] = null; }
 
-                if (this.getView().byId("fldINDCDT").getValue() !== "") {
-                    oParam["INDCDT"] = sapDateFormat.format(new Date(this.getView().byId("fldINDCDT").getValue())) + "T00:00:00";
-                }
-                else { oParam["INDCDT"] = null; }
+                    if (this.getView().byId("fldINDCDT").getValue() !== "") {
+                        oParam["INDCDT"] = sapDateFormat.format(new Date(this.getView().byId("fldINDCDT").getValue())) + "T00:00:00";
+                    }
+                    else { oParam["INDCDT"] = null; }
 
-                if (this.getView().byId("fldEXFTYDT").getValue() !== "") {
-                    oParam["EXFTYDT"] = sapDateFormat.format(new Date(this.getView().byId("fldEXFTYDT").getValue())) + "T00:00:00";
-                }
-                else { oParam["EXFTYDT"] = null; }
+                    if (this.getView().byId("fldEXFTYDT").getValue() !== "") {
+                        oParam["EXFTYDT"] = sapDateFormat.format(new Date(this.getView().byId("fldEXFTYDT").getValue())) + "T00:00:00";
+                    }
+                    else { oParam["EXFTYDT"] = null; }
 
-                if (this.getView().byId("fldDEPARTDT").getValue() !== "") {
-                    oParam["DEPARTDT"] = sapDateFormat.format(new Date(this.getView().byId("fldDEPARTDT").getValue())) + "T00:00:00";
-                }
-                else { oParam["DEPARTDT"] = null; }
+                    if (this.getView().byId("fldDEPARTDT").getValue() !== "") {
+                        oParam["DEPARTDT"] = sapDateFormat.format(new Date(this.getView().byId("fldDEPARTDT").getValue())) + "T00:00:00";
+                    }
+                    else { oParam["DEPARTDT"] = null; }
 
-                if (this.getView().byId("fldREFDOCDT").getValue() !== "") {
-                    oParam["REFDOCDT"] = sapDateFormat.format(new Date(this.getView().byId("fldREFDOCDT").getValue())) + "T00:00:00";
-                }
-                else { oParam["REFDOCDT"] = null; }
+                    if (this.getView().byId("fldREFDOCDT").getValue() !== "") {
+                        oParam["REFDOCDT"] = sapDateFormat.format(new Date(this.getView().byId("fldREFDOCDT").getValue())) + "T00:00:00";
+                    }
+                    else { oParam["REFDOCDT"] = null; }
 
-                if (this.getView().byId("fldTOTALNOPKG").getValue() !== "") {
-                    oParam["TOTALNOPKG"] = +this.getView().byId("fldTOTALNOPKG").getValue();
-                }
-                else { oParam["TOTALNOPKG"] = null; }
+                    if (this.getView().byId("fldTOTALNOPKG").getValue() !== "") {
+                        oParam["TOTALNOPKG"] = +this.getView().byId("fldTOTALNOPKG").getValue();
+                    }
+                    else { oParam["TOTALNOPKG"] = null; }
 
-                if (this.getView().byId("fldREVNO").getValue() !== "") {
-                    oParam["REVNO"] = +this.getView().byId("fldREVNO").getValue();
-                }
-                else { oParam["REVNO"] = null; }
+                    if (this.getView().byId("fldREVNO").getValue() !== "") {
+                        oParam["REVNO"] = +this.getView().byId("fldREVNO").getValue();
+                    }
+                    else { oParam["REVNO"] = null; }
+                    console.log(oParam)
+                    if (this._dataMode === "NEW") {
+                        this._oModel.create("/HeaderSet", oParam, {
+                            method: "POST",
+                            success: function (oData, oResponse) {
+                                var oMessage = JSON.parse(oResponse.headers["sap-message"]);
 
-                if (this._dataMode === "NEW") {
-                    this._oModel.create("/HeaderSet", oParam, {
-                        method: "POST",
-                        success: function (oData, oResponse) {
-                            var oMessage = JSON.parse(oResponse.headers["sap-message"]);
+                                if (oMessage.severity === "success") {
+                                    me.getView().byId("fldDLVNO").setValue(oMessage.message);
+                                    me.setHeaderFieldsEditable(false);
+        
+                                    me.getView().byId("btnEditHdr").setVisible(true);
+                                    me.getView().byId("btnRefreshHdr").setVisible(true);
+                                    me.getView().byId("btnSaveHdr").setVisible(false);
+                                    me.getView().byId("btnCancelHdr").setVisible(false);
+                                    me.getView().byId("btnComplete").setVisible(true);
+            
+                                    me.getView().byId("btnEditShipDtl").setEnabled(true);
+                                    me.getView().byId("btnRefreshShipDtl").setEnabled(true);
+                                
+                                    var oIconTabBar = me.byId("itbDetail");
+                                    oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
+                                    
+                                    if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
 
-                            if (oMessage.severity === "success") {
-                                me.getView().byId("fldDLVNO").setValue(oMessage.message);
+                                    // me.unLock();
+                                    me._dataMode = "READ";
+                                    me.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv", oMessage.message);
+                                    me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
+                                    me.byId("itbDetail").setVisible(true);
+                                    Common.closeProcessingDialog(me);
+                                    me.getHeaderData(false);
+                                    me.getDelvStatusData(false); 
+                                }
+                                else {
+                                    MessageBox.information(oMessage.message);
+                                }
+                            },
+                            error: function (oError) {
+                                Common.closeProcessingDialog(me);
+                            }
+                        });
+                    }
+                    else {
+                        this._oModel.setHeaders({ section: "DELVHDR" });
+
+                        this._oModel.update("/HeaderSet('" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "')", oParam, {
+                            method: "PUT",
+                            success: function (oData, oResponse) {
+                                MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_SAVE"]);
+
                                 me.setHeaderFieldsEditable(false);
-    
+        
                                 me.getView().byId("btnEditHdr").setVisible(true);
                                 me.getView().byId("btnRefreshHdr").setVisible(true);
                                 me.getView().byId("btnSaveHdr").setVisible(false);
@@ -1274,61 +1341,186 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         
                                 me.getView().byId("btnEditShipDtl").setEnabled(true);
                                 me.getView().byId("btnRefreshShipDtl").setEnabled(true);
-                            
+                                me.getView().byId("btnAddDelvSched").setEnabled(true);
+                                me.getView().byId("btnDeleteDelvSched").setEnabled(true);
+                                // me.getView().byId("btnCompleteDelvSched").setEnabled(true);
+                                me.getView().byId("btnRefreshDelvSched").setEnabled(true);
+                                
                                 var oIconTabBar = me.byId("itbDetail");
                                 oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
-                                
+
                                 if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
 
-                                // me.unLock();
+                                me.unLock();
                                 me._dataMode = "READ";
-                                me.getOwnerComponent().getModel("UI_MODEL").setProperty("/activeDlv", oMessage.message);
                                 me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
-                                me.byId("itbDetail").setVisible(true);
                                 Common.closeProcessingDialog(me);
-                                me.getHeaderData(false);
-                                me.getDelvStatusData(false); 
+                            },
+                            error: function (oError) {
+                                Common.closeProcessingDialog(me);
                             }
-                            else {
-                                MessageBox.information(oMessage.message);
-                            }
-                        },
-                        error: function (oError) {
-                            Common.closeProcessingDialog(me);
-                        }
-                    });
+                        });
+                    }
                 }
-                else {
-                    this._oModel.setHeaders({ section: "DELVHDR" });
+                else if (this._sActiveTable === "shipDtlForm") {
+                    if (!this._bHeaderChanged) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_NO_DATA_MODIFIED"]);
+                        return;
+                    }
+
+                    if (this._validationErrors.length > 0) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_ENTRIES"]);
+                        return;
+                    }
+                    
+                    this.byId("shipForm").getFormContainers().forEach(item => {
+                        item.getFormElements().forEach(e => {
+                            var sFieldName = "";
+        
+                            if (e.getFields()[0].getBindingInfo("value") !== undefined) {
+                                sFieldName = e.getFields()[0].getBindingInfo("value").parts[0].path.replace("/","");
+                            }
+                            else if (e.getFields()[0].getBindingInfo("selected") !== undefined) {
+                                sFieldName = "";
+                            }
+        
+                            if (sFieldName !== "") {
+                                var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
+
+                                if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
+                                    bProceed = false;
+                                } 
+                            }
+                        })
+                    })
+                    
+                    if (!bProceed) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_INPUT_REQD_FIELDS"]);
+                        return;
+                    }
+
+                    Common.openProcessingDialog(this);
+                    this._oModel.setHeaders({ section: "SHIPDTL" });
+
+                    oParam["VESSEL"] = this.getView().byId("fldVESSEL").getValue();
+                    oParam["VOYAGE"] = this.getView().byId("fldVOYAGE").getValue();
+                    oParam["CARRIER"] = this.getView().byId("fldCARRIER").getValue();
+                    oParam["FORWRDR"] = this.getView().byId("fldFORWRDR").getValue();
+                    oParam["FORREFNO"] = this.getView().byId("fldFORREFNO").getValue();
+                    oParam["BOOKINGNO"] = this.getView().byId("fldBOOKINGNO").getValue();
+                    oParam["PORTLD"] = this.getView().byId("fldPORTLD").getValue();
+                    oParam["PORTDIS"] = this.getView().byId("fldPORTDIS").getValue();
+                    // oParam["ETD"] = this.getView().byId("fldETD").getValue();
+                    // oParam["ETA"] = this.getView().byId("fldETA").getValue();
+                    oParam["HBL"] = this.getView().byId("fldHBL").getValue();
+                    // oParam["HBLDT"] = this.getView().byId("fldHBLDT").getValue();
+                    oParam["MBL"] = this.getView().byId("fldMBL").getValue();
+                    // oParam["MBLDT"] = this.getView().byId("fldMBLDT").getValue();
+                    oParam["CONSIGN"] = this.getView().byId("fldCONSIGN").getSelectedKey();
+                    oParam["MESSRS"] = this.getView().byId("fldMESSRS").getSelectedKey();
+                    oParam["INVPRE"] = this.getView().byId("fldINVPRE").getValue();
+                    oParam["INVNO"] = this.getView().byId("fldINVNO").getValue();
+                    oParam["INVSUF"] = this.getView().byId("fldINVSUF").getValue();
+                    // oParam["INVDT"] = this.getView().byId("fldINVDT").getValue();
+                    oParam["ACCTTYP"] = this.getView().byId("fldACCTTYP").getSelectedKey();
+                    oParam["IMPTR"] = this.getView().byId("fldIMPTR").getValue();
+                    oParam["EXPTR"] = this.getView().byId("fldEXPTR").getValue();
+                    oParam["FINLDEST"] = this.getView().byId("fldFINLDEST").getValue();
+                    oParam["CONTTYP"] = this.getView().byId("fldCONTTYP").getValue();
+                    oParam["CONTNO"] = this.getView().byId("fldCONTNO").getValue();
+                    oParam["SEALNO"] = this.getView().byId("fldSEALNO").getValue();
+                    oParam["GRSWT"] = this.getView().byId("fldGRSWT").getValue();
+                    oParam["NETWT"] = this.getView().byId("fldNETWT").getValue();
+                    oParam["WTUOM"] = this.getView().byId("fldWTUOM").getSelectedKey();
+                    oParam["VOLUME"] = this.getView().byId("fldVOLUME").getValue();
+                    oParam["VOLUOM"] = this.getView().byId("fldVOLUOM").getSelectedKey();
+                    oParam["NP1"] = this.getView().byId("fldNP1").getValue();
+                    oParam["NP2"] = this.getView().byId("fldNP2").getValue();
+                    oParam["NP3"] = this.getView().byId("fldNP3").getValue();
+                    oParam["NP4"] = this.getView().byId("fldNP4").getValue();
+                    oParam["EXPLICNO"] = this.getView().byId("fldEXPLICNO").getValue();
+                    // oParam["EXPLICDT"] = this.getView().byId("fldEXPLICDT").getValue();
+                    oParam["INSPOL"] = this.getView().byId("fldINSPOL").getValue();
+                    oParam["TCINVNO"] = this.getView().byId("fldTCINVNO").getValue();
+
+                    if (this.getView().byId("fldGRSWT").getValue() === "") {
+                        oParam["GRSWT"] = "0.000";
+                    } 
+
+                    if (this.getView().byId("fldNETWT").getValue() === "") {
+                        oParam["NETWT"] = "0.000";
+                    } 
+
+                    if (this.getView().byId("fldVOLUME").getValue() === "") {
+                        oParam["VOLUME"] = "0.000";
+                    } 
+
+                    if (this.getView().byId("fldETD").getValue() !== "") {
+                        oParam["ETD"] = sapDateFormat.format(new Date(this.getView().byId("fldETD").getValue())) + "T00:00:00";
+                    } 
+                    else { oParam["ETD"] = null; }
+
+                    if (this.getView().byId("fldETA").getValue() !== "") {
+                        oParam["ETA"] = sapDateFormat.format(new Date(this.getView().byId("fldETA").getValue())) + "T00:00:00";
+                    } 
+                    else { oParam["ETA"] = null; }
+
+                    if (this.getView().byId("fldHBLDT").getValue() !== "") {
+                        oParam["HBLDT"] = sapDateFormat.format(new Date(this.getView().byId("fldHBLDT").getValue())) + "T00:00:00";
+                    } 
+                    else { oParam["HBLDT"] = null; }
+
+                    if (this.getView().byId("fldMBLDT").getValue() !== "") {
+                        oParam["MBLDT"] = sapDateFormat.format(new Date(this.getView().byId("fldMBLDT").getValue())) + "T00:00:00";
+                    } 
+                    else { oParam["MBLDT"] = null; }
+
+                    if (this.getView().byId("fldINVDT").getValue() !== "") {
+                        oParam["INVDT"] = sapDateFormat.format(new Date(this.getView().byId("fldINVDT").getValue())) + "T00:00:00";
+                    } 
+                    else { oParam["INVDT"] = null; }
+
+                    if (this.getView().byId("fldEXPLICDT").getValue() !== "") {
+                        oParam["EXPLICDT"] = sapDateFormat.format(new Date(this.getView().byId("fldEXPLICDT").getValue())) + "T00:00:00";
+                    } 
+                    else { oParam["EXPLICDT"] = null; }
 
                     this._oModel.update("/HeaderSet('" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "')", oParam, {
                         method: "PUT",
                         success: function (oData, oResponse) {
                             MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_SAVE"]);
 
-                            me.setHeaderFieldsEditable(false);
-    
-                            me.getView().byId("btnEditHdr").setVisible(true);
-                            me.getView().byId("btnRefreshHdr").setVisible(true);
-                            me.getView().byId("btnSaveHdr").setVisible(false);
-                            me.getView().byId("btnCancelHdr").setVisible(false);
-                            me.getView().byId("btnComplete").setVisible(true);
-    
-                            me.getView().byId("btnEditShipDtl").setEnabled(true);
-                            me.getView().byId("btnRefreshShipDtl").setEnabled(true);
-                            me.getView().byId("btnAddDelvSched").setEnabled(true);
-                            me.getView().byId("btnDeleteDelvSched").setEnabled(true);
-                            // me.getView().byId("btnCompleteDelvSched").setEnabled(true);
-                            me.getView().byId("btnRefreshDelvSched").setEnabled(true);
-                            
+                            me.setShipDetailFieldsEditable(false);
+
+                            me.getView().byId("btnEditShipDtl").setVisible(true);
+                            me.getView().byId("btnRefreshShipDtl").setVisible(true);
+                            me.getView().byId("btnSaveShipDtl").setVisible(false);
+                            me.getView().byId("btnCancelShipDtl").setVisible(false);
+            
+                            me.getView().byId("btnEditHdr").setEnabled(true);
+                            me.getView().byId("btnRefreshHdr").setEnabled(true);
+                            me.getView().byId("btnComplete").setEnabled(true);
+
                             var oIconTabBar = me.byId("itbDetail");
                             oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
 
                             if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
 
+                            if (me.getView().byId("fldGRSWT").getValue() === "") {
+                                me.getView().byId("fldGRSWT").setValue("0.000");
+                            } 
+
+                            if (me.getView().byId("fldNETWT").getValue() === "") {
+                                me.getView().byId("fldNETWT").setValue("0.000");
+                            } 
+
+                            if (me.getView().byId("fldVOLUME").getValue() === "") {
+                                me.getView().byId("fldVOLUME").setValue("0.000");
+                            } 
+
                             me.unLock();
                             me._dataMode = "READ";
-                            me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
+
                             Common.closeProcessingDialog(me);
                         },
                         error: function (oError) {
@@ -1336,212 +1528,158 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         }
                     });
                 }
-            }
-            else if (obj.getId().indexOf("shipDtlForm") >= 0) {
-                if (!this._bHeaderChanged) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_NO_DATA_MODIFIED"]);
-                    return;
-                }
+                else if (this._sActiveTable === "delvSchedTab") {
+                    if (oTable.getModel().getData().rows.length > 0) {
+                        Common.openProcessingDialog(this);
 
-                if (this._validationErrors.length > 0) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_ENTRIES"]);
-                    return;
-                }
+                        this._oModel.setHeaders({ 
+                            dlvno: this.getView().byId("fldDLVNO").getValue(),
+                            docdt: dateFormat2.format(new Date(this.getView().byId("fldDOCDT").getValue()))
+                        });
+                        
+                        this._oModel.setUseBatch(true);
+                        this._oModel.setDeferredGroups(["update"]);
+
+                        var mParameters = { groupId:"update" }
+
+                        oTable.getModel().getData().rows.forEach(item => {
+                            var param = {};
+
+                            this._aColumns[this._sActiveTable.replace("Tab","")].forEach(col => {
+                                if (item[col.ColumnName].toString() !== "") {
+                                    if (col.DataType === "DATETIME") {
+                                        param[col.ColumnName] = item[col.ColumnName] === "" ? "" : sapDateFormat.format(new Date(item[col.ColumnName])) + "T00:00:00";                                    
+                                    } 
+                                    else if (col.DataType === "BOOLEAN") {
+                                        param[col.ColumnName] = item[col.ColumnName] === true ? "X" : "";
+                                    }
+                                    else if (col.DataType === "NUMBER" && col.Decimal === 0) {
+                                        param[col.ColumnName] = +item[col.ColumnName];
+                                    }
+                                    else {
+                                        param[col.ColumnName] = item[col.ColumnName] === "" ? "" : item[col.ColumnName] + "";
+                                    }
+                                }
+                            })
+
+                            this._oModel.create("/DelvSchedSet", param, mParameters);
+                        })
+                        
+                        this._oModel.submitChanges({
+                            groupId: "update",
+                            success: function (oData, oResponse) {
+                                MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_SAVE"]);
+
+                                me.getView().byId("btnAddDelvSched").setVisible(true);
+                                me.getView().byId("btnDeleteDelvSched").setVisible(true);
+                                // me.getView().byId("btnCompleteDelvSched").setVisible(true);
+                                me.getView().byId("btnRefreshDelvSched").setVisible(true);
+                                me.getView().byId("btnAddNewDelvSched").setVisible(false);
+                                me.getView().byId("btnRemoveNewDelvSched").setVisible(false);
+                                me.getView().byId("btnSavedDelvSched").setVisible(false);
+                                me.getView().byId("btnCancelDelvSched").setVisible(false);
                 
-                this.byId("shipForm").getFormContainers().forEach(item => {
-                    item.getFormElements().forEach(e => {
-                        var sFieldName = "";
-    
-                        if (e.getFields()[0].getBindingInfo("value") !== undefined) {
-                            sFieldName = e.getFields()[0].getBindingInfo("value").parts[0].path.replace("/","");
-                        }
-                        else if (e.getFields()[0].getBindingInfo("selected") !== undefined) {
-                            sFieldName = "";
-                        }
-    
-                        if (sFieldName !== "") {
-                            var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
+                                me.getView().byId("btnEditHdr").setEnabled(true);
+                                me.getView().byId("btnRefreshHdr").setEnabled(true);
+                                me.getView().byId("btnComplete").setEnabled(true);
+                
+                                var oIconTabBar = me.byId("itbDetail");
+                                oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
+                
+                                me._dataMode = "READ";
+                                me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
 
-                            if (oColumn[0].Mandatory && e.getFields()[0].getProperty("value") === "") {
-                                bProceed = false;
-                            } 
+                                me.byId("delvSchedTab").getModel().setProperty("/rows", oTable.getModel().getData().rows.concat(me._aDataBeforeChange));
+                                me.byId("delvSchedTab").bindRows("/rows");
+
+                                if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
+
+                                me.getDelvDetailData();
+                                me.unLock();
+
+                                Common.closeProcessingDialog(me);
+                            },
+                            error: function () {
+                                Common.closeProcessingDialog(me);
+                            }
+                        })
+                    }
+                    else {
+                        MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_DATA_SAVE"])
+                    }
+                }
+                else if (this._sActiveTable === "delvDtlTab") {
+                    if (!this._bDelvDtlChanged) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_NO_DATA_MODIFIED"]);
+                        return;
+                    }
+
+                    if (this._validationErrors.length > 0) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_ENTRIES"]);
+                        return;
+                    }
+
+                    var bProceed = true;
+                    var aEditedRows = this.byId(this._sActiveTable).getModel().getData().rows.filter(item => item.EDITED === true);
+
+                    aEditedRows.forEach(item => {
+                        if (item.DLVQTYBSE > item.AVAILQTY) {
+                            bProceed = false;
                         }
                     })
-                })
-                
-                if (!bProceed) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_INPUT_REQD_FIELDS"]);
-                    return;
-                }
 
-                Common.openProcessingDialog(this);
-                this._oModel.setHeaders({ section: "SHIPDTL" });
-
-                oParam["VESSEL"] = this.getView().byId("fldVESSEL").getValue();
-                oParam["VOYAGE"] = this.getView().byId("fldVOYAGE").getValue();
-                oParam["CARRIER"] = this.getView().byId("fldCARRIER").getValue();
-                oParam["FORWRDR"] = this.getView().byId("fldFORWRDR").getValue();
-                oParam["FORREFNO"] = this.getView().byId("fldFORREFNO").getValue();
-                oParam["BOOKINGNO"] = this.getView().byId("fldBOOKINGNO").getValue();
-                oParam["PORTLD"] = this.getView().byId("fldPORTLD").getValue();
-                oParam["PORTDIS"] = this.getView().byId("fldPORTDIS").getValue();
-                // oParam["ETD"] = this.getView().byId("fldETD").getValue();
-                // oParam["ETA"] = this.getView().byId("fldETA").getValue();
-                oParam["HBL"] = this.getView().byId("fldHBL").getValue();
-                // oParam["HBLDT"] = this.getView().byId("fldHBLDT").getValue();
-                oParam["MBL"] = this.getView().byId("fldMBL").getValue();
-                // oParam["MBLDT"] = this.getView().byId("fldMBLDT").getValue();
-                oParam["CONSIGN"] = this.getView().byId("fldCONSIGN").getSelectedKey();
-                oParam["MESSRS"] = this.getView().byId("fldMESSRS").getSelectedKey();
-                oParam["INVPRE"] = this.getView().byId("fldINVPRE").getValue();
-                oParam["INVNO"] = this.getView().byId("fldINVNO").getValue();
-                oParam["INVSUF"] = this.getView().byId("fldINVSUF").getValue();
-                // oParam["INVDT"] = this.getView().byId("fldINVDT").getValue();
-                oParam["ACCTTYP"] = this.getView().byId("fldACCTTYP").getSelectedKey();
-                oParam["IMPTR"] = this.getView().byId("fldIMPTR").getValue();
-                oParam["EXPTR"] = this.getView().byId("fldEXPTR").getValue();
-                oParam["FINLDEST"] = this.getView().byId("fldFINLDEST").getValue();
-                oParam["CONTTYP"] = this.getView().byId("fldCONTTYP").getValue();
-                oParam["CONTNO"] = this.getView().byId("fldCONTNO").getValue();
-                oParam["SEALNO"] = this.getView().byId("fldSEALNO").getValue();
-                oParam["GRSWT"] = this.getView().byId("fldGRSWT").getValue();
-                oParam["NETWT"] = this.getView().byId("fldNETWT").getValue();
-                oParam["WTUOM"] = this.getView().byId("fldWTUOM").getSelectedKey();
-                oParam["VOLUME"] = this.getView().byId("fldVOLUME").getValue();
-                oParam["VOLUOM"] = this.getView().byId("fldVOLUOM").getSelectedKey();
-                oParam["NP1"] = this.getView().byId("fldNP1").getValue();
-                oParam["NP2"] = this.getView().byId("fldNP2").getValue();
-                oParam["NP3"] = this.getView().byId("fldNP3").getValue();
-                oParam["NP4"] = this.getView().byId("fldNP4").getValue();
-                oParam["EXPLICNO"] = this.getView().byId("fldEXPLICNO").getValue();
-                // oParam["EXPLICDT"] = this.getView().byId("fldEXPLICDT").getValue();
-                oParam["INSPOL"] = this.getView().byId("fldINSPOL").getValue();
-                oParam["TCINVNO"] = this.getView().byId("fldTCINVNO").getValue();
-
-                if (this.getView().byId("fldGRSWT").getValue() === "") {
-                    oParam["GRSWT"] = "0.000";
-                } 
-
-                if (this.getView().byId("fldNETWT").getValue() === "") {
-                    oParam["NETWT"] = "0.000";
-                } 
-
-                if (this.getView().byId("fldVOLUME").getValue() === "") {
-                    oParam["VOLUME"] = "0.000";
-                } 
-
-                if (this.getView().byId("fldETD").getValue() !== "") {
-                    oParam["ETD"] = sapDateFormat.format(new Date(this.getView().byId("fldETD").getValue())) + "T00:00:00";
-                } 
-                else { oParam["ETD"] = null; }
-
-                if (this.getView().byId("fldETA").getValue() !== "") {
-                    oParam["ETA"] = sapDateFormat.format(new Date(this.getView().byId("fldETA").getValue())) + "T00:00:00";
-                } 
-                else { oParam["ETA"] = null; }
-
-                if (this.getView().byId("fldHBLDT").getValue() !== "") {
-                    oParam["HBLDT"] = sapDateFormat.format(new Date(this.getView().byId("fldHBLDT").getValue())) + "T00:00:00";
-                } 
-                else { oParam["HBLDT"] = null; }
-
-                if (this.getView().byId("fldMBLDT").getValue() !== "") {
-                    oParam["MBLDT"] = sapDateFormat.format(new Date(this.getView().byId("fldMBLDT").getValue())) + "T00:00:00";
-                } 
-                else { oParam["MBLDT"] = null; }
-
-                if (this.getView().byId("fldINVDT").getValue() !== "") {
-                    oParam["INVDT"] = sapDateFormat.format(new Date(this.getView().byId("fldINVDT").getValue())) + "T00:00:00";
-                } 
-                else { oParam["INVDT"] = null; }
-
-                if (this.getView().byId("fldEXPLICDT").getValue() !== "") {
-                    oParam["EXPLICDT"] = sapDateFormat.format(new Date(this.getView().byId("fldEXPLICDT").getValue())) + "T00:00:00";
-                } 
-                else { oParam["EXPLICDT"] = null; }
-
-                this._oModel.update("/HeaderSet('" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "')", oParam, {
-                    method: "PUT",
-                    success: function (oData, oResponse) {
-                        MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_SAVE"]);
-
-                        me.setShipDetailFieldsEditable(false);
-
-                        me.getView().byId("btnEditShipDtl").setVisible(true);
-                        me.getView().byId("btnRefreshShipDtl").setVisible(true);
-                        me.getView().byId("btnSaveShipDtl").setVisible(false);
-                        me.getView().byId("btnCancelShipDtl").setVisible(false);
-        
-                        me.getView().byId("btnEditHdr").setEnabled(true);
-                        me.getView().byId("btnRefreshHdr").setEnabled(true);
-                        me.getView().byId("btnComplete").setEnabled(true);
-
-                        var oIconTabBar = me.byId("itbDetail");
-                        oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
-
-                        if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
-
-                        if (me.getView().byId("fldGRSWT").getValue() === "") {
-                            me.getView().byId("fldGRSWT").setValue("0.000");
-                        } 
-
-                        if (me.getView().byId("fldNETWT").getValue() === "") {
-                            me.getView().byId("fldNETWT").setValue("0.000");
-                        } 
-
-                        if (me.getView().byId("fldVOLUME").getValue() === "") {
-                            me.getView().byId("fldVOLUME").setValue("0.000");
-                        } 
-
-                        me.unLock();
-                        me._dataMode = "READ";
-
-                        Common.closeProcessingDialog(me);
-                    },
-                    error: function (oError) {
-                        Common.closeProcessingDialog(me);
+                    if (!bProceed) {
+                        MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_DLVQTYBSE"]);
+                        return;
                     }
-                });
-            }
-            else if (obj.getId().indexOf("delvSchedTab") >= 0) {
-                var oTable = obj;
 
-                if (oTable.getModel().getData().rows.length > 0) {
-                    Common.openProcessingDialog(this);
+                    Common.openProcessingDialog(me, "Processing...");
 
-                    this._oModel.setHeaders({ 
-                        dlvno: this.getView().byId("fldDLVNO").getValue(),
-                        docdt: dateFormat2.format(new Date(this.getView().byId("fldDOCDT").getValue()))
-                    });
-                    
+                    var sEntitySet = "/DelvDetailSet(";
+
                     this._oModel.setUseBatch(true);
                     this._oModel.setDeferredGroups(["update"]);
 
-                    var mParameters = { groupId:"update" }
+                    var mParameters = {
+                        "groupId":"update"
+                    }
 
-                    oTable.getModel().getData().rows.forEach(item => {
+                    aEditedRows.forEach(item => {
+                        var entitySet = sEntitySet;
                         var param = {};
+                        var iKeyCount = this._aColumns[this._sActiveTable.replace("Tab","")].filter(col => col.Key === "X").length;
+                        var itemValue;
 
                         this._aColumns[this._sActiveTable.replace("Tab","")].forEach(col => {
-                            if (item[col.ColumnName].toString() !== "") {
-                                if (col.DataType === "DATETIME") {
-                                    param[col.ColumnName] = item[col.ColumnName] === "" ? "" : sapDateFormat.format(new Date(item[col.ColumnName])) + "T00:00:00";                                    
-                                } 
-                                else if (col.DataType === "BOOLEAN") {
-                                    param[col.ColumnName] = item[col.ColumnName] === true ? "X" : "";
-                                }
-                                else if (col.DataType === "NUMBER" && col.Decimal === 0) {
-                                    param[col.ColumnName] = +item[col.ColumnName];
-                                }
-                                else {
-                                    param[col.ColumnName] = item[col.ColumnName] === "" ? "" : item[col.ColumnName] + "";
+                            if (col.DataType === "DATETIME") {
+                                itemValue = sapDateFormat.format(new Date(item[col.ColumnName])) + "T00:00:00";
+                            } 
+                            else if (col.DataType === "BOOLEAN") {
+                                itemValue = item[col.ColumnName] === true ? "X" : "";
+                            }
+                            else {
+                                itemValue = item[col.ColumnName];
+                            }
+
+                            if (col.Editable) {
+                                param[col.ColumnName] = itemValue;
+                            }
+
+                            if (iKeyCount === 1) {
+                                if (col.Key === "X")
+                                    entitySet += "'" + itemValue + "'"
+                            }
+                            else if (iKeyCount > 1) {
+                                if (col.Key === "X") {
+                                    entitySet += col.ColumnName + "='" + itemValue + "',"
                                 }
                             }
                         })
 
-                        // param["DLVNO"] = this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv;
-                        // console.log(param)
-                        this._oModel.create("/DelvSchedSet", param, mParameters);
+                        if (iKeyCount > 1) entitySet = entitySet.substring(0, entitySet.length - 1);
+                        entitySet += ")";
+
+                        this._oModel.update(entitySet, param, mParameters);
                     })
                     
                     this._oModel.submitChanges({
@@ -1549,31 +1687,23 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         success: function (oData, oResponse) {
                             MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_SAVE"]);
 
-                            me.getView().byId("btnAddDelvSched").setVisible(true);
-                            me.getView().byId("btnDeleteDelvSched").setVisible(true);
-                            // me.getView().byId("btnCompleteDelvSched").setVisible(true);
-                            me.getView().byId("btnRefreshDelvSched").setVisible(true);
-                            me.getView().byId("btnAddNewDelvSched").setVisible(false);
-                            me.getView().byId("btnRemoveNewDelvSched").setVisible(false);
-                            me.getView().byId("btnSavedDelvSched").setVisible(false);
-                            me.getView().byId("btnCancelDelvSched").setVisible(false);
+                            me.getView().byId("btnEditDelvDtl").setVisible(true);
+                            me.getView().byId("btnRefreshDelvDtl").setVisible(true);
+                            me.getView().byId("btnSaveDelvDtl").setVisible(false);
+                            me.getView().byId("btnCancelDelvDtl").setVisible(false);
             
                             me.getView().byId("btnEditHdr").setEnabled(true);
                             me.getView().byId("btnRefreshHdr").setEnabled(true);
                             me.getView().byId("btnComplete").setEnabled(true);
             
+                            me.setRowReadMode();
+
                             var oIconTabBar = me.byId("itbDetail");
                             oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
             
-                            me._dataMode = "READ";
-                            me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
-
-                            me.byId("delvSchedTab").getModel().setProperty("/rows", oTable.getModel().getData().rows.concat(me._aDataBeforeChange));
-                            me.byId("delvSchedTab").bindRows("/rows");
-
                             if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
-
-                            me.getDelvDetailData();
+                            
+                            me._dataMode = "READ";
                             me.unLock();
 
                             Common.closeProcessingDialog(me);
@@ -1583,223 +1713,133 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         }
                     })
                 }
-                else {
-                    MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_DATA_SAVE"])
-                }
-            }
-            else if (obj.getId().indexOf("delvDtlTab") >= 0) {
-                var oTable = obj;
-
-                if (!this._bDelvDtlChanged) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_NO_DATA_MODIFIED"]);
-                    return;
-                }
-
-                if (this._validationErrors.length > 0) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_ENTRIES"]);
-                    return;
-                }
-
-                var bProceed = true;
-                var aEditedRows = this.byId(this._sActiveTable).getModel().getData().rows.filter(item => item.EDITED === true);
-
-                aEditedRows.forEach(item => {
-                    if (item.DLVQTYBSE > item.AVAILQTY) {
-                        bProceed = false;
-                    }
-                })
-
-                if (!bProceed) {
-                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_CHECK_INVALID_DLVQTYBSE"]);
-                    return;
-                }
-
-                Common.openProcessingDialog(me, "Processing...");
-
-                var sEntitySet = "/DelvDetailSet(";
-
-                this._oModel.setUseBatch(true);
-                this._oModel.setDeferredGroups(["update"]);
-
-                var mParameters = {
-                    "groupId":"update"
-                }
-
-                aEditedRows.forEach(item => {
-                    var entitySet = sEntitySet;
-                    var param = {};
-                    var iKeyCount = this._aColumns[this._sActiveTable.replace("Tab","")].filter(col => col.Key === "X").length;
-                    var itemValue;
-                    // console.log(this._aColumns[arg])
-                    this._aColumns[this._sActiveTable.replace("Tab","")].forEach(col => {
-                        if (col.DataType === "DATETIME") {
-                            itemValue = sapDateFormat.format(new Date(item[col.ColumnName])) + "T00:00:00";
-                        } 
-                        else if (col.DataType === "BOOLEAN") {
-                            itemValue = item[col.ColumnName] === true ? "X" : "";
-                        }
-                        else {
-                            itemValue = item[col.ColumnName];
-                        }
-
-                        if (col.Editable) {
-                            param[col.ColumnName] = itemValue;
-                        }
-
-                        if (iKeyCount === 1) {
-                            if (col.Key === "X")
-                                entitySet += "'" + itemValue + "'"
-                        }
-                        else if (iKeyCount > 1) {
-                            if (col.Key === "X") {
-                                entitySet += col.ColumnName + "='" + itemValue + "',"
-                            }
-                        }
-                    })
-
-                    if (iKeyCount > 1) entitySet = entitySet.substring(0, entitySet.length - 1);
-                    entitySet += ")";
-
-                    this._oModel.update(entitySet, param, mParameters);
-                })
-                
-                this._oModel.submitChanges({
-                    groupId: "update",
-                    success: function (oData, oResponse) {
-                        MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_SAVE"]);
-
-                        me.getView().byId("btnEditDelvDtl").setVisible(true);
-                        me.getView().byId("btnRefreshDelvDtl").setVisible(true);
-                        me.getView().byId("btnSaveDelvDtl").setVisible(false);
-                        me.getView().byId("btnCancelDelvDtl").setVisible(false);
-        
-                        me.getView().byId("btnEditHdr").setEnabled(true);
-                        me.getView().byId("btnRefreshHdr").setEnabled(true);
-                        me.getView().byId("btnComplete").setEnabled(true);
-        
-                        me.setRowReadMode();
-
-                        var oIconTabBar = me.byId("itbDetail");
-                        oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
-        
-                        if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
-                        
-                        me._dataMode = "READ";
-                        me.unLock();
-
-                        Common.closeProcessingDialog(me);
-                    },
-                    error: function () {
-                        Common.closeProcessingDialog(me);
-                    }
-                })
             }
         },
 
         onRefresh: function (oEvent) {
-            // var oTable = oEvent.getSource().oParent.oParent;
-            if (oEvent.getSource().data("TableId") === "delvHdrForm") {
-                this.getHeaderData(true);
-            }
-            else if (oEvent.getSource().data("TableId") === "delvSchedTab") {
-                this.getDelvSchedData();
-                this._aColFilters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aFilters;
-                this._aColSorters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aSorters;   
-            }
-            else if (oEvent.getSource().data("TableId") === "shipDtlForm") {
-                this.getHeaderData(true);
-            }
-            else if (oEvent.getSource().data("TableId") === "delvDtlTab") {
-                this._aColFilters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aFilters;
-                this._aColSorters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aSorters;    
-                this.getDelvDetailData();
-            }
-            else if (oEvent.getSource().data("TableId") === "delvStatTab") {
-                this._aColFilters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aFilters;
-                this._aColSorters = this.byId(oEvent.getSource().data("TableId")).getBinding("rows").aSorters;    
-                this.getDelvStatusData(true);
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            this.refreshData();
+        },
+
+        refreshData() {
+            if (this._dataMode === "READ") {
+                if (this._sActiveTable === "delvHdrForm") {
+                    this.getHeaderData(true);
+                }
+                else if (this._sActiveTable === "delvSchedTab") {
+                    this.getDelvSchedData();
+                }
+                else if (this._sActiveTable === "shipDtlForm") {
+                    this.getHeaderData(true);
+                }
+                else if (this._sActiveTable === "delvDtlTab") {
+                    this.getDelvDetailData();
+                }
+                else if (this._sActiveTable === "delvStatTab") {
+                    this.getDelvStatusData(true);
+                }
+
+                if (this._sActiveTable.substring(this._sActiveTable.length - 3, this._sActiveTable.length) === "Tab") {
+                    this._aColFilters = this.byId(this._sActiveTable).getBinding("rows").aFilters;
+                    this._aColSorters = this.byId(this._sActiveTable).getBinding("rows").aSorters;
+                }
             }
         },
         
-        onDelete: async function (oEvent) {
-            var oTable = oEvent.getSource().oParent.oParent;
-            var me = this;
+        onDelete: function (oEvent) {
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            this.deleteData();
+        },
 
-            var bProceed = await this.lock(this);
-            if (!bProceed) return;
+        async deleteData(){
+            if (this._dataMode === "READ") {
+                var oTable = this.byId(this._sActiveTable);
+                var me = this;
 
-            if (oTable.getId().indexOf("delvSchedTab") >= 0) {
-                if (oTable.getModel().getData().rows.length > 0) {
-                    if (me.getView().byId("fldSTATUS").getValue().indexOf("50") >= 0) {
-                        var aSelIndices = oTable.getSelectedIndices();
-                        var oTmpSelectedIndices = [];
-                        var aData = oTable.getModel().getData().rows;
+                if (oTable.getModel().getData().rows.length === 0) {
+                    MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_RECORD_TO_DELETE"]);
+                    return;
+                }
 
-                        // me._addToDelvSched = me.byId("delvSchedTab").getModel().getData().rows;
+                if (this.getView().byId("fldSTATUS").getSelectedKey() !== "50") {
+                    MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_SHIPDOC_CHANGE_NOT_ALLOW"]);
+                    return;
+                }
 
-                        if (aSelIndices.length > 0) {
-                            MessageBox.confirm(me.getView().getModel("ddtext").getData()["CONF_DELETE_RECORDS"], {
-                                actions: ["Yes", "No"],
-                                onClose: function (sAction) {
-                                    if (sAction === "Yes") {
-                                        Common.openProcessingDialog(me);
+                var bProceed = await this.lock(this);
+                if (!bProceed) return;
 
-                                        var mParameters = { groupId:"update" }
-            
-                                        aSelIndices.forEach(item => {
-                                            oTmpSelectedIndices.push(oTable.getBinding("rows").aIndices[item])
-                                        })
-            
-                                        aSelIndices = oTmpSelectedIndices;
-            
-                                        aSelIndices.forEach((item, index) => {
-                                            var sEntitySet = "/DelvSchedSet(DLVNO='" + aData.at(item).DLVNO + "',IONO='" + aData.at(item).IONO + "',DLVSEQ=" + aData.at(item).DLVSEQ + ")";
-                                            me._oModel.remove(sEntitySet, null, mParameters);
-                                        })
-            
-                                        me._oModel.setUseBatch(true);
-                                        me._oModel.setDeferredGroups(["update"]);
-            
-                                        me._oModel.submitChanges({
-                                            groupId: "update",
-                                            success: function (oData, oResponse) {
-                                                aSelIndices.sort((a,b) => (a < b ? 1 : -1));
-                                                aSelIndices.forEach((item, index) => {
-                                                    var idxToRemove = aData.indexOf(aData.at(item));
-                                                    aData.splice(idxToRemove, 1);
-                                                })
-            
-                                                me.byId("delvSchedTab").getModel().setProperty("/rows", aData);
-                                                me.byId("delvSchedTab").bindRows("/rows");
-                                                me.getDelvDetailData();
-                                                me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
-            
-                                                me.unLock();
-                                                Common.closeProcessingDialog(me);
-                                                MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_DELETED"]);
-                                            },
-                                            error: function () {
-                                                Common.closeProcessingDialog(me);
-                                            }
-                                        }) 
+                if (this._sActiveTable === "delvSchedTab") {
+                    if (oTable.getModel().getData().rows.length > 0) {
+                        if (me.getView().byId("fldSTATUS").getSelectedKey() === "50") {
+                            var aSelIndices = oTable.getSelectedIndices();
+                            var oTmpSelectedIndices = [];
+                            var aData = oTable.getModel().getData().rows;
+
+                            if (aSelIndices.length > 0) {
+                                MessageBox.confirm(me.getView().getModel("ddtext").getData()["CONF_DELETE_RECORDS"], {
+                                    actions: ["Yes", "No"],
+                                    onClose: function (sAction) {
+                                        if (sAction === "Yes") {
+                                            Common.openProcessingDialog(me);
+
+                                            var mParameters = { groupId:"update" }
+                
+                                            aSelIndices.forEach(item => {
+                                                oTmpSelectedIndices.push(oTable.getBinding("rows").aIndices[item])
+                                            })
+                
+                                            aSelIndices = oTmpSelectedIndices;
+                
+                                            aSelIndices.forEach((item, index) => {
+                                                var sEntitySet = "/DelvSchedSet(DLVNO='" + aData.at(item).DLVNO + "',IONO='" + aData.at(item).IONO + "',DLVSEQ=" + aData.at(item).DLVSEQ + ")";
+                                                me._oModel.remove(sEntitySet, null, mParameters);
+                                            })
+                
+                                            me._oModel.setUseBatch(true);
+                                            me._oModel.setDeferredGroups(["update"]);
+                
+                                            me._oModel.submitChanges({
+                                                groupId: "update",
+                                                success: function (oData, oResponse) {
+                                                    aSelIndices.sort((a,b) => (a < b ? 1 : -1));
+                                                    aSelIndices.forEach((item, index) => {
+                                                        var idxToRemove = aData.indexOf(aData.at(item));
+                                                        aData.splice(idxToRemove, 1);
+                                                    })
+                
+                                                    me.byId("delvSchedTab").getModel().setProperty("/rows", aData);
+                                                    me.byId("delvSchedTab").bindRows("/rows");
+                                                    me.getDelvDetailData();
+                                                    me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
+                
+                                                    me.unLock();
+                                                    Common.closeProcessingDialog(me);
+                                                    MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_DELETED"]);
+                                                },
+                                                error: function () {
+                                                    Common.closeProcessingDialog(me);
+                                                }
+                                            }) 
+                                        }
+                                        else { me.unLock(); }
                                     }
-                                    else { me.unLock(); }
-                                }
-                            });
-                        } 
-                        else  {
+                                });
+                            } 
+                            else  {
+                                me.unLock();
+                                MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_SEL_RECORD_TO_DELETE"]);
+                            }
+                        }
+                        else {
                             me.unLock();
-                            MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_SEL_RECORD_TO_DELETE"]);
+                            MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DLV_DELETE_NOT_ALLOW"]);
                         }
                     }
-                    else {
+                    else  {
                         me.unLock();
-                        MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DLV_DELETE_NOT_ALLOW"]);
+                        MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_RECORD_TO_DELETE"]);
                     }
-                }
-                else  {
-                    me.unLock();
-                    MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_NO_RECORD_TO_DELETE"]);
                 }
             }
         },
@@ -1810,8 +1850,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             var oTmpSelectedIndices = [];
             var aData = oTable.getModel().getData().rows;
             var me = this;
-
-            // this._addToDelvSched = this.byId("delvSchedTab").getModel().getData().rows;
 
             if (aData.length > 0) {
                 if (aSelIndices.length > 0) {
@@ -1832,9 +1870,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         var idxToRemove = aData.indexOf(aData.at(item));
                         this._AddDelvSchedDialog.getModel().getData().rows.splice(idxToRemove, 1);
                     })
-
-                    // this.byId("delvSchedTab").getModel().setProperty("/rows", this._addToDelvSched);
-                    // this.byId("delvSchedTab").bindRows("/rows");
 
                     this._AddDelvSchedDialog.getModel().setProperty("/rows", this._AddDelvSchedDialog.getModel().getData().rows);
 
@@ -1868,48 +1903,28 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                             }
                         })
 
-                        // param["DLVNO"] = this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv;
-                        // console.log(param)
                         this._oModel.create("/DelvSchedSet", param, mParameters);
                     })
                     
                     this._oModel.submitChanges({
                         groupId: "update",
                         success: function (oData, oResponse) {
-                            me._AddDelvSchedDialog.close();
-                            me.unLock();
-
                             MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_DATA_SAVE"]);
 
-                            // me.getView().byId("btnAddDelvSched").setVisible(true);
-                            // me.getView().byId("btnDeleteDelvSched").setVisible(true);
-                            // me.getView().byId("btnCompleteDelvSched").setVisible(true);
-                            // me.getView().byId("btnRefreshDelvSched").setVisible(true);
-                            // me.getView().byId("btnAddNewDelvSched").setVisible(false);
-                            // me.getView().byId("btnRemoveNewDelvSched").setVisible(false);
-                            // me.getView().byId("btnSavedDelvSched").setVisible(false);
-                            // me.getView().byId("btnCancelDelvSched").setVisible(false);
-
-                            // me.getView().byId("btnEditHdr").setEnabled(true);
-                            // me.getView().byId("btnRefreshHdr").setEnabled(true);
-
-                            // var oIconTabBar = me.byId("itbDetail");
-                            // oIconTabBar.getItems().forEach(item => item.setProperty("enabled", true));
-
-                            me._dataMode = "READ";
                             me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
-
+                            me._dataMode = "READ";
+                            me._AddDelvSchedDialog.close();
+                            me.unLock();
                             me.byId("delvSchedTab").getModel().setProperty("/rows", me._addToDelvSched.concat(me._aDataBeforeChange));
                             me.byId("delvSchedTab").bindRows("/rows");
-
-                            if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
-
                             me.getDelvDetailData();
                             
+                            if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
                             Common.closeProcessingDialog(me);
                         },
-                        error: function () {
+                        error: function (err) {
                             Common.closeProcessingDialog(me);
+                            MessageBox.error(err.message);
                         }
                     })                   
                 }
@@ -1923,10 +1938,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         },
 
         onCloseDelvSched: function(oEvent) {
+            this._dataMode = "READ";
             this._AddDelvSchedDialog.close();
             this.unLock();
             if (sap.ushell.Container !== undefined) { sap.ushell.Container.setDirtyFlag(false); }
-            me._dataMode = "READ";
         },
 
         onRemoveNewRow: function(oEvent) {
@@ -1972,7 +1987,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         },
 
         onComplete: async function (oEvent) {
-            var oTable = oEvent.getSource().oParent.oParent;
             var me = this;
             var aReqFields = [];
             var bProceed = true;
@@ -1983,9 +1997,9 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             //     return;
             // }
 
-            if (me.getView().byId("fldSTATUS").getValue().indexOf("51") >= 0) {
+            if (this.getView().byId("fldSTATUS").getSelectedKey() !== "50") {
                 bProceed = false;
-                MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_DLV_ALREADY_COMPLETED"]);
+                MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_SHIPDOC_CHANGE_NOT_ALLOW"]);
                 return;
             }
 
@@ -2003,7 +2017,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     if (sFieldName !== "") {
                         var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
 
-                        if (oColumn[0].Mandatory && e.getFields()[0].getProperty("value") === "") {
+                        if (oColumn[0].Mandatory &&!(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
                             aReqFields.push(e.getLabel().getProperty("text"));
                             bProceed = false;
                         } 
@@ -2025,7 +2039,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     if (sFieldName !== "") {
                         var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
 
-                        if (oColumn[0].Mandatory && e.getFields()[0].getProperty("value") === "") {
+                        if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
                             aReqFields.push(e.getLabel().getProperty("text"));
                             bProceed = false;
                         } 
@@ -2061,7 +2075,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     this._oModel.update("/HeaderSet('" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "')", oParam, {
                         method: "PUT",
                         success: function (oData, oResponse) {
-                            me.getView().byId("fldSTATUS").setValue("51");
+                            me.getView().byId("fldSTATUS").setSelectedKey("51");
                             me.getOwnerComponent().getModel("UI_MODEL").setProperty("/refresh", true);
                             me.unLock();
                             me.getHeaderData(false);
@@ -2372,7 +2386,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 this.getView().byId("btnRefreshShipDtl").setEnabled(true);
                 this.getView().byId("btnAddDelvSched").setEnabled(true);
                 this.getView().byId("btnDeleteDelvSched").setEnabled(true);
-                // this.getView().byId("btnCompleteDelvSched").setEnabled(true);
                 this.getView().byId("btnRefreshDelvSched").setEnabled(true);
 
                 var oHeaderData = this._oDataBeforeChange;
@@ -2398,7 +2411,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
                 this.getView().byId("btnAddDelvSched").setVisible(true);
                 this.getView().byId("btnDeleteDelvSched").setVisible(true);
-                // this.getView().byId("btnCompleteDelvSched").setVisible(true);
                 this.getView().byId("btnRefreshDelvSched").setVisible(true);
                 this.getView().byId("btnAddNewDelvSched").setVisible(false);
                 this.getView().byId("btnRemoveNewDelvSched").setVisible(false);
@@ -2412,7 +2424,6 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 oTable.getModel().setProperty("/rows", this._aDataBeforeChange);
                 oTable.bindRows("/rows");
 
-                // if (this._aColFilters.length > 0) { this.setColumnFilters("delvSchedTab"); }
                 if (this._aColSorters.length > 0) { this.setColumnSorters("delvSchedTab"); }  
                 TableFilter.applyColFilters("delvSchedTab", me);
             }
@@ -2511,10 +2522,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     sTitle = "Plant";
                 }
                 else if (this._inputField === "SOLDTOCUST") {
-                    oData = this.getView().getModel("shiptocust").getData();
+                    oData = this.getView().getModel("soldtocust").getData();
                     oData.forEach(item => {
                         item.VHTitle = item.CUSTOMER;
-                        item.VHDesc = item.CUSTGRP;
+                        item.VHDesc = item.NAME1;
                         item.VHSelected = (item.CUSTOMER === this._inputValue);
                     })
                     sTitle = "Sold-To Customer";
@@ -2629,8 +2640,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             var oSource = oEvent.getSource();
             var isInvalid = !oSource.getSelectedKey() && oSource.getValue().trim();
             oSource.setValueState(isInvalid ? "Error" : "None");
-            console.log(oEvent.getParameters())
-            console.log(oEvent.getSource())
+
             oSource.getSuggestionItems().forEach(item => {
                 if (item.getProperty("key") === oSource.getValue().trim()) {
                     isInvalid = false;
@@ -2646,10 +2656,11 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 this.getView().getModel(sModel).setProperty(sPath, oSource.getSelectedKey());
                 // console.log(this.getView().getModel(sModel).getData())
                 if (sPath === "/SOLDTOCUST") {
-                    var oSoldToCust = this.getView().getModel("shiptocust").getData().filter(fItem => fItem.CUSTOMER === oSource.getSelectedKey());
+                    var oSoldToCust = this.getView().getModel("soldtocust").getData().filter(fItem => fItem.CUSTOMER === oSource.getSelectedKey());
 
                     if (this.getView().getModel(sModel).getProperty("/CUSTGRP") !== oSoldToCust[0].CUSTGRP) {
                         this.getView().getModel(sModel).setProperty("/CUSTGRP", oSoldToCust[0].CUSTGRP);
+                        this.byId("fldCUSTGRP").setSelectedKey(oSoldToCust[0].CUSTGRP);
                         this.getView().getModel(sModel).setProperty("/CONSIGN", "");
                         this.getView().getModel(sModel).setProperty("/MESSRS", "");
 
@@ -2741,7 +2752,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
         formatValueHelp: function(sValue, sPath, sKey, sText, sFormat) {
             // console.log(sValue, sPath, sKey, sText, sFormat);
-            var oValue = this.getView().getModel(sPath).getData().filter(v => v[sKey] === sValue);
+            var oValue = this.getView().getModel(sPath).getData().filter(v => v[sKey] === sValue);;
 
             if (oValue && oValue.length > 0) {
                 if (sFormat === "Value") {
@@ -2909,11 +2920,11 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         },
 
         lock: async (me) => {
-            var oModelLock = me.getOwnerComponent().getModel("ZGW_3DERP_LOCK_SRV");
+            var oModelLock = me.getOwnerComponent().getModel("ZGW_3DERP_LOCK2_SRV");
             var oParamLock = {
-                Dlvno: me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv,
                 Lock_Unlock_Ind: "X",
                 IV_Count: 900,
+                N_DLVHDR_TAB: [{Dlvno: me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv}],
                 N_LOCK_UNLOCK_DLVHDR_RET: [],
                 N_LOCK_UNLOCK_DLVHDR_MSG: []
             }
@@ -2948,7 +2959,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             if (this._oLock.length === 0) { return; }
 
             var me = this;
-            var oModelLock = new sap.ui.model.odata.v2.ODataModel("/sap/opu/odata/sap/ZGW_3DERP_LOCK_SRV/");
+            var oModelLock = new sap.ui.model.odata.v2.ODataModel("/sap/opu/odata/sap/ZGW_3DERP_LOCK2_SRV/");
             var oParamLock = this._oLock[0];
 
             oParamLock["Lock_Unlock_Ind"] = "";
@@ -2971,10 +2982,9 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         },
 
         asyncUnLock: async (me) => {
-            console.log("asyncUnLock")
             if (me._oLock.length === 0) { return; }
 
-            var oModelLock = new sap.ui.model.odata.v2.ODataModel("/sap/opu/odata/sap/ZGW_3DERP_LOCK_SRV/");
+            var oModelLock = new sap.ui.model.odata.v2.ODataModel("/sap/opu/odata/sap/ZGW_3DERP_LOCK2_SRV/");
             var oParamLock = me._oLock[0];
 
             oParamLock["Lock_Unlock_Ind"] = "";
@@ -3007,33 +3017,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 var oTable = oEvent.getSource(); //this.byId("ioMatListTab");
                 var sRowPath = oEvent.getParameters().rowBindingContext.sPath;
 
-                if (oTable.getId().indexOf("headerTab") >= 0) {
-                    var vCurrComp = oTable.getModel().getProperty(sRowPath + "/COSTCOMPCD");
-                    var vPrevComp = this.getView().getModel("ui").getData().activeComp;
-
-                    if (vCurrComp !== vPrevComp) {
-                        this.getView().getModel("ui").setProperty("/activeComp", vCurrComp);
-
-                        if (this._dataMode === "READ") {
-                            this.getView().getModel("ui").setProperty("/activeCompDisplay", vCurrComp);
-                            this.getDetailData(false);
-                        }
-
-                        var oTableDetail = this.byId("detailTab");
-                        var oColumns = oTableDetail.getColumns();
-
-                        for (var i = 0, l = oColumns.length; i < l; i++) {
-                            if (oColumns[i].getSorted()) {
-                                oColumns[i].setSorted(false);
-                            }
-                        }
-                    }
-
-                    if (this._dataMode === "READ") this._sActiveTable = "headerTab";
-                }
-                else {
-                    if (this._dataMode === "READ") this._sActiveTable = "detailTab";
-                }
+                this._sActiveTable = oTable.getId().split("--")[oControl.sId.split("--").length - 1];
+                console.log(this._sActiveTable)
 
                 oTable.getModel().getData().rows.forEach(row => row.ACTIVE = "");
                 oTable.getModel().setProperty(sRowPath + "/ACTIVE", "X");

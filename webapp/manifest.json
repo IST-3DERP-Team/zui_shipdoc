@@ -1,5 +1,5 @@
 {
-    "_version": "1.17.0",
+    "_version": "1.48.0",
     "sap.app": {
         "id": "zuishipdoc",
         "type": "application",
@@ -12,7 +12,7 @@
         "resources": "resources.json",
         "sourceTemplate": {
             "id": "@sap/generator-fiori:basic",
-            "version": "1.8.3",
+            "version": "1.10.6",
             "toolsId": "e619c392-a0fa-423b-93e7-71a9fb4421b8"
         },
         "dataSources": {
@@ -26,7 +26,7 @@
                 }
             },
             "ZVB_3DERP_SHIPDOC_FILTERS_CDS_Annotation": {
-                "uri": "/destinations/LTD888/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZVB_3DERP_SHIPDOC_FILTERS_CD_VAN',Version='0001')/$value/",
+                "uri": "/destinations/LTD888_S4HANA2022/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZVB_3DERP_SHIPDOC_FILTERS_CD_VAN',Version='0001')/$value/",
                 "type": "ODataAnnotation",
                 "settings": {
                     "localUri": "localService/ZVB_3DERP_SHIPDOC_FILTERS_CDS/ZVB_3DERP_SHIPDOC_FILTERS_CDS_Annotation.xml"
@@ -60,6 +60,15 @@
                     "annotations": [],
                     "localUri": "localService/ZGW_3DERP_LOCK_SRV/metadata.xml"
                 }
+            },
+            "ZGW_3DERP_LOCK2_SRV": {
+                "uri": "/sap/opu/odata/sap/ZGW_3DERP_LOCK2_SRV",
+                "type": "OData",
+                "settings": {
+                    "annotations": [],
+                    "localUri": "localService/ZGW_3DERP_LOCK2_SRV/metadata.xml",
+                    "odataVersion": "2.0"
+                }
             }
         }
     },
@@ -82,7 +91,7 @@
     "sap.ui5": {
         "flexEnabled": false,
         "dependencies": {
-            "minUI5Version": "1.71.49",
+            "minUI5Version": "1.108.9",
             "libs": {
                 "sap.m": {},
                 "sap.ui.core": {},
@@ -116,10 +125,10 @@
             "Copy": {
                 "shortcut": "Ctrl+C"
             }
-        },        
+        },
         "contentDensities": {
             "compact": true,
-            "cozy": true
+            "cozy": false
         },
         "models": {
             "i18n": {
@@ -182,6 +191,18 @@
                     "defaultBindingMode": "TwoWay",
                     "defaultCountMode": "Inline",
                     "refreshAfterChange": false
+                }
+            },
+            "ZGW_3DERP_LOCK2_SRV": {
+                "dataSource": "ZGW_3DERP_LOCK2_SRV",
+                "preload": true,
+                "settings": {
+                    "defaultBindingMode": "TwoWay",
+                    "defaultCountMode": "Inline",
+                    "refreshAfterChange": false,
+                    "metadataUrlParams": {
+                        "sap-value-list": "none"
+                    }
                 }
             }
         },

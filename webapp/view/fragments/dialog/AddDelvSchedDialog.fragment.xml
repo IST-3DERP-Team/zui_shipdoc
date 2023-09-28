@@ -7,7 +7,7 @@
         fragmentName="adddelvsched">
     <Dialog contentWidth="1301px"
         contentHeight="505px"
-        title="{ddtext>/AVAILDLVSCHD} ({/rowCount})"
+        title="{ddtext>/AVAILDLVSCHD} ({/recCount})"
         resizable="true"
         draggable="true">
         <content>

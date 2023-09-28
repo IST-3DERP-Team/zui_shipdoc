@@ -22,7 +22,6 @@ sap.ui.define([
 
             onInit: function () {
                 me = this;
-
                 this._dataMode = "READ";
                 this._sActiveTable = "mainHeaderTab"; 
                 // this._tableRendered = "mainHeaderTab";
@@ -43,6 +42,10 @@ sap.ui.define([
                 this._tableFilter = TableFilter;
                 this._colFilters = {};
                 this._oLock = [];
+                this._oTables = [
+                    { TableId: "mainHeaderTab" },
+                    { TableId: "mainDetailTab" }
+                ]
 
                 this.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", this._dataMode);
                 this.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", this._oLock);
@@ -244,6 +247,7 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "CONF_DELETE_RECORDS"});
                 oDDTextParam.push({CODE: "INFO_DLV_ALREADY_COMPLETED"});
                 oDDTextParam.push({CODE: "CONFIRM_SAVE_CHANGE"});
+                oDDTextParam.push({CODE: "INFO_SHIPDOC_CHANGE_NOT_ALLOW"});
 
                 this._oModelCommon.create("/CaptionMsgSet", { CaptionMsgItems: oDDTextParam  }, {
                     method: "POST",
@@ -339,6 +343,7 @@ sap.ui.define([
 
                 this._oModel.read("/IssPlantSHSet", {
                     success: function (oData, oResponse) {
+                        me.getView().setModel(new JSONModel(oData.results), "issplant");
                         me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/issplant", oData.results);
                     },
                     error: function (err) { }
@@ -346,7 +351,27 @@ sap.ui.define([
     
                 this._oModel.read("/ShipToCustSHSet", {
                     success: function (oData, oResponse) {
+                        me.getView().setModel(new JSONModel(oData.results), "shiptocust");
                         me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/shiptocust", oData.results);
+
+                        var oSoldToCust = [];
+
+                        oData.results.forEach(item => {
+                            if (item.CUSTGRP !== "") {
+                                oSoldToCust.push(item);
+                            }
+                        })
+
+                        me.getView().setModel(new JSONModel(oData.results), "soldtocust");
+                        me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/soldtocust", oData.results);
+                    },
+                    error: function (err) { }
+                });
+
+                this._oModel.read("/CustGrpSHSet", {
+                    success: function (oData, oResponse) {
+                        me.getView().setModel(new JSONModel(oData.results), "custgrp");
+                        me.getOwnerComponent().getModel("LOOKUP_MODEL").setProperty("/custgrp", oData.results);
                     },
                     error: function (err) { }
                 });
@@ -763,6 +788,51 @@ sap.ui.define([
                             }
                         });
                     }
+                    else if (sColumnId === "ISSPLNT") {
+                        oText.bindText({  
+                            parts: [  
+                                { path: sColumnId }
+                            ],  
+                            formatter: function(sColumnId) {
+                                var oValue = me.getView().getModel("issplant").getData().filter(v => v.PLANTCD === sColumnId);
+
+                                if (oValue && oValue.length > 0) {
+                                    return oValue[0].DESCRIPTION + " (" + sColumnId + ")";
+                                }
+                                else return sColumnId;
+                            }
+                        });
+                    }
+                    else if (sColumnId === "BILLTOCUST" || sColumnId === "SOLDTOCUST" || sColumnId === "CUSTSHIPTO") {
+                        oText.bindText({  
+                            parts: [  
+                                { path: sColumnId }
+                            ],  
+                            formatter: function(sColumnId) {
+                                var oValue = me.getView().getModel("shiptocust").getData().filter(v => v.CUSTOMER === sColumnId);
+
+                                if (oValue && oValue.length > 0) {
+                                    return oValue[0].NAME1 + " (" + sColumnId + ")";
+                                }
+                                else return sColumnId;
+                            }
+                        });
+                    }
+                    else if (sColumnId === "CUSTGRP") {
+                        oText.bindText({  
+                            parts: [  
+                                { path: sColumnId }
+                            ],  
+                            formatter: function(sColumnId) {
+                                var oValue = me.getView().getModel("custgrp").getData().filter(v => v.CUSTGRP === sColumnId);
+
+                                if (oValue && oValue.length > 0) {
+                                    return oValue[0].DESCRIPTION + " (" + sColumnId + ")";
+                                }
+                                else return sColumnId;
+                            }
+                        });
+                    }
                     else {
                         oText.bindText({  
                             parts: [  
@@ -871,72 +941,83 @@ sap.ui.define([
             },
 
             onEdit: function (oEvent) {
-                var me = this;
-                var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK_SRV");
-                var oParamLock = {
-                    Dlvno: this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv,
-                    Lock_Unlock_Ind: "X",
-                    IV_Count: 900,
-                    N_LOCK_UNLOCK_DLVHDR_RET: [],
-                    N_LOCK_UNLOCK_DLVHDR_MSG: []
-                }
-                console.log(this._oLock)
-                this._oLock.push(oParamLock);
+                var oTable = oEvent.getSource().oParent.oParent;
+                var sTabId = oTable.sId.split("--")[oTable.sId.split("--").length - 1];
+                this._sActiveTable = sTabId;
+                this.editData();
+            },
 
-                Common.openProcessingDialog(this);
-                oModelLock.create("/Lock_Unlock_DlvHdrSet", oParamLock, {
-                    method: "POST",
-                    success: function(oData, oResponse) {
-                        console.log("Lock_Unlock_DlvHdrSet", oData);
-
-                        if (oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Type === "E"){
-                            MessageBox.information(oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Message);
-                        }
-                        else {
-                            me.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", "EDIT");
-                            me.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", me._oLock);
-                            me.navToDetail();
-                        }
-
-                        Common.closeProcessingDialog(me);
-                    },
-                    error: function(err) {
-                        MessageBox.error(err);
-                        Common.closeProcessingDialog(me);
+            editData() {
+                if (this._dataMode === "READ") {
+                    var me = this;
+                    var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK2_SRV");
+                    var oParamLock = {
+                        Lock_Unlock_Ind: "X",
+                        IV_Count: 900,
+                        N_DLVHDR_TAB: [{Dlvno: this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv}],
+                        N_LOCK_UNLOCK_DLVHDR_RET: [],
+                        N_LOCK_UNLOCK_DLVHDR_MSG: []
                     }
-                });  
+
+                    this._oLock.push(oParamLock);
+
+                    Common.openProcessingDialog(this);
+                    console.log(oParamLock)
+                    oModelLock.create("/Lock_Unlock_DlvHdrSet", oParamLock, {
+                        method: "POST",
+                        success: function(oData, oResponse) {
+                            console.log(oData)
+                            if (oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Type === "E"){
+                                MessageBox.information(oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Message);
+                            }
+                            else {
+                                me.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", "EDIT");
+                                me.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", me._oLock);
+                                me.navToDetail();
+                            }
+
+                            Common.closeProcessingDialog(me);
+                        },
+                        error: function(err) {
+                            MessageBox.error(err);
+                            Common.closeProcessingDialog(me);
+                        }
+                    });
+                } 
             },
 
             onRefresh: function (oEvent) {
                 var oTable = oEvent.getSource().oParent.oParent;
-                
-                if (oTable.getId().indexOf("mainHeaderTab") >= 0) {
-                    this._aColFilters = this.byId("mainHeaderTab").getBinding("rows").aFilters;
-                    this._aColSorters = this.byId("mainHeaderTab").getBinding("rows").aSorters;    
-                    this.getHeaderData();
-                }
-                else {
-                    this._aColFilters = this.byId("mainDetailTab").getBinding("rows").aFilters;
-                    this._aColSorters = this.byId("mainDetailTab").getBinding("rows").aSorters;
-                    this.getDetailData(true);
+                var sTabId = oTable.sId.split("--")[oTable.sId.split("--").length - 1];
+                this._sActiveTable = sTabId;
+                this.refreshData();
+            },
+
+            refreshData() {
+                if (this._dataMode === "READ") {
+                    if (this._sActiveTable === "mainHeaderTab") {
+                        this.getHeaderData();   
+                    }
+                    else {
+                        this.getDetailData(true);
+                    }
+
+                    this._aColFilters = this.byId(this._sActiveTable).getBinding("rows").aFilters;
+                    this._aColSorters = this.byId(this._sActiveTable).getBinding("rows").aSorters;
                 }
             },
 
             onTableResize: function(oEvent) {
-                if (oEvent.getSource().getId().indexOf("ExitFullScreen") >= 0) {
-                    this.byId("smartFilterBar").setFilterBarExpanded(true);
-                    this.byId("mainDetailTab").setVisible(true);
-                    this.byId("btnFullScreen").setVisible(true);
-                    this.byId("btnExitFullScreen").setVisible(false);
-                }
-                else {
-                    this.byId("smartFilterBar").setFilterBarExpanded(false);
-                    this.byId("mainDetailTab").setVisible(false);
-                    this.byId("btnFullScreen").setVisible(false);
-                    this.byId("btnExitFullScreen").setVisible(true);
-                }
+                this._sActiveTable = oEvent.getSource().data("TableId");
+                
+                var vFullScreen = oEvent.getSource().data("Max") === "1" ? true : false;
+                var vSuffix = oEvent.getSource().data("ButtonIdSuffix");
+                var me = this;
 
-                // this._tableRendered = "mainHeaderTab";
+                this.byId("smartFilterBar").setFilterBarExpanded(!vFullScreen);
+                this.byId("btnFullScreen" + vSuffix).setVisible(!vFullScreen);
+                this.byId("btnExitFullScreen" + vSuffix).setVisible(vFullScreen);
+                this._oTables.filter(fItem => fItem.TableId !== me._sActiveTable).forEach(item => me.byId(item.TableId).setVisible(!vFullScreen));
             },
 
             onAfterTableRendering: function (oEvent) {
@@ -1116,7 +1197,7 @@ sap.ui.define([
 
             unLock() {
                 var me = this;
-                var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK_SRV");
+                var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK2_SRV");
                             
                 var oParamLock = this._oLock[0];
                 oParamLock["Lock_Unlock_Ind"] = "";
