@@ -239,7 +239,7 @@
                                             <Label text="{ddtext>/SALESTERMTEXT}" required="false"></Label>
                                         </form:label>
                                         <form:fields>
-                                            <Input id="fldSALESTERMTEXT" value="{header>/SALESTERMTEXT}" editable="false" tooltip="{header>/SALESTERMTEXT}" />
+                                            <Input id="fldSALESTERMTEXT" value="{header>/SALESTERMTEXT}" editable="false" change="onInputChange" tooltip="{header>/SALESTERMTEXT}" />
                                         </form:fields>
                                     </form:FormElement>                                                                        
                                 </form:formElements>

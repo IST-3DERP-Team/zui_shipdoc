@@ -953,7 +953,7 @@ sap.ui.define([
                     var oModelLock = this.getOwnerComponent().getModel("ZGW_3DERP_LOCK2_SRV");
                     var oParamLock = {
                         Lock_Unlock_Ind: "X",
-                        IV_Count: 900,
+                        IV_Count: 600,
                         N_DLVHDR_TAB: [{Dlvno: this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv}],
                         N_LOCK_UNLOCK_DLVHDR_RET: [],
                         N_LOCK_UNLOCK_DLVHDR_MSG: []
@@ -962,11 +962,12 @@ sap.ui.define([
                     this._oLock.push(oParamLock);
 
                     Common.openProcessingDialog(this);
-                    console.log(oParamLock)
+                    // console.log(oParamLock)
                     oModelLock.create("/Lock_Unlock_DlvHdrSet", oParamLock, {
                         method: "POST",
                         success: function(oData, oResponse) {
-                            console.log(oData)
+                            console.log(oData);
+                            console.log(oResponse);
                             if (oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Type === "E"){
                                 MessageBox.information(oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Message);
                             }
@@ -979,6 +980,7 @@ sap.ui.define([
                             Common.closeProcessingDialog(me);
                         },
                         error: function(err) {
+                            me.unLock();
                             MessageBox.error(err);
                             Common.closeProcessingDialog(me);
                         }

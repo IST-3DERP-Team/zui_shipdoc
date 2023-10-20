@@ -78,6 +78,9 @@
                     columnResize="onColumnUpdated"
                     columnSelect="onColumnUpdated"
                     columnVisibility="onColumnUpdated">
+                    <uiT:rowSettingsTemplate>
+                        <uiT:RowSettings highlight="{= ${STATUS} === '50' ? 'Error' : ${STATUS} === '51' ? 'Success' : 'Information'}" />
+                    </uiT:rowSettingsTemplate>
                     <uiT:extension>
                         <OverflowToolbar>
                             <Text text="{counts>/header} {ddtext>/DLVDOCS}" class="selHdrKeyFontStyle" />

@@ -1191,6 +1191,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 var oTable = this.byId(this._sActiveTable);
                 var oParam = {};
                 var bProceed = true;
+                var aReqFields = [];
 
                 if (this._sActiveTable === "delvHdrForm") {
                     if (!this._bHeaderChanged) {
@@ -1216,9 +1217,21 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         
                             if (sFieldName !== "") {
                                 var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
-                                if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
-                                    bProceed = false;
-                                } 
+
+                                if (oColumn[0].Mandatory) {
+                                    if (oColumn[0].DataType === "DATETIME") {
+                                        if (e.getFields()[0].getProperty("value") === "") {
+                                            aReqFields.push(e.getLabel().getProperty("text"));
+                                            bProceed = false;
+                                        }
+                                    }
+                                    else {
+                                        if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || (e.getFields()[0].getProperty("selectedKey") !== undefined && e.getFields()[0].getProperty("selectedKey") !== ""))) {
+                                            aReqFields.push(e.getLabel().getProperty("text"));
+                                            bProceed = false;
+                                        }
+                                    }
+                                }
                             }
                         })
                     })
@@ -1387,9 +1400,20 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                             if (sFieldName !== "") {
                                 var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
 
-                                if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
-                                    bProceed = false;
-                                } 
+                                if (oColumn[0].Mandatory) {
+                                    if (oColumn[0].DataType === "DATETIME") {
+                                        if (e.getFields()[0].getProperty("value") === "") {
+                                            aReqFields.push(e.getLabel().getProperty("text"));
+                                            bProceed = false;
+                                        }
+                                    }
+                                    else {
+                                        if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || (e.getFields()[0].getProperty("selectedKey") !== undefined && e.getFields()[0].getProperty("selectedKey") !== ""))) {
+                                            aReqFields.push(e.getLabel().getProperty("text"));
+                                            bProceed = false;
+                                        }
+                                    }
+                                }
                             }
                         })
                     })
@@ -2017,9 +2041,20 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     if (sFieldName !== "") {
                         var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
 
-                        if (oColumn[0].Mandatory &&!(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
-                            aReqFields.push(e.getLabel().getProperty("text"));
-                            bProceed = false;
+                        if (oColumn[0].Mandatory) {
+                            console.log(e.getFields()[0])
+                            if (oColumn[0].DataType === "DATETIME") {
+                                if (e.getFields()[0].getProperty("value") === "") {
+                                    aReqFields.push(e.getLabel().getProperty("text"));
+                                    bProceed = false;
+                                }
+                            }
+                            else {
+                                if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || (e.getFields()[0].getProperty("selectedKey") !== undefined && e.getFields()[0].getProperty("selectedKey") !== ""))) {
+                                    aReqFields.push(e.getLabel().getProperty("text"));
+                                    bProceed = false;
+                                }
+                            }
                         } 
                     }
                 })
@@ -2039,15 +2074,25 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     if (sFieldName !== "") {
                         var oColumn = this._aColumns["delvHdr"].filter(fItem => fItem.ColumnName === sFieldName);
 
-                        if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || e.getFields()[0].getProperty("selectedKey") !== "")) {
-                            aReqFields.push(e.getLabel().getProperty("text"));
-                            bProceed = false;
+                        if (oColumn[0].Mandatory) {
+                            if (oColumn[0].DataType === "DATETIME") {
+                                if (e.getFields()[0].getProperty("value") === "") {
+                                    aReqFields.push(e.getLabel().getProperty("text"));
+                                    bProceed = false;
+                                }
+                            }
+                            else {
+                                if (oColumn[0].Mandatory && !(e.getFields()[0].getProperty("value") !== "" || (e.getFields()[0].getProperty("selectedKey") !== undefined && e.getFields()[0].getProperty("selectedKey") !== ""))) {
+                                    aReqFields.push(e.getLabel().getProperty("text"));
+                                    bProceed = false;
+                                }
+                            }
                         } 
                     }
                 })
             })
 
-            if (!bProceed) {                
+            if (!bProceed) {
                 // this.unLock();
                 MessageBox.information(this.getView().getModel("ddtext").getData()["INFO_INPUT_REQD_FIELDS"] + ": \r\n" + aReqFields.join(", "));
             }
@@ -2923,18 +2968,20 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             var oModelLock = me.getOwnerComponent().getModel("ZGW_3DERP_LOCK2_SRV");
             var oParamLock = {
                 Lock_Unlock_Ind: "X",
-                IV_Count: 900,
+                IV_Count: 600,
                 N_DLVHDR_TAB: [{Dlvno: me.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv}],
                 N_LOCK_UNLOCK_DLVHDR_RET: [],
                 N_LOCK_UNLOCK_DLVHDR_MSG: []
             }
 
             me._oLock.push(oParamLock);
-            console.log(oParamLock)
+            // console.log(oParamLock)
             var promise = new Promise((resolve, reject) => {
                 oModelLock.create("/Lock_Unlock_DlvHdrSet", oParamLock, {
                     method: "POST",
-                    success: function(oData, oResponse) {   
+                    success: function(oData, oResponse) {
+                        console.log(oData);
+                        console.log(oResponse);
                         if (oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Type === "E"){
                             resolve(false);
                             MessageBox.information(oData.N_LOCK_UNLOCK_DLVHDR_MSG.results[0].Message);
@@ -2947,6 +2994,7 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     },
                     error: function(err) {
                         MessageBox.error(err);
+                        me.unLock();
                         resolve(false);
                     }
                 });
