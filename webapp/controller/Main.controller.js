@@ -17,6 +17,7 @@ sap.ui.define([
         var dateFormat = sap.ui.core.format.DateFormat.getDateInstance({ pattern: "MM/dd/yyyy" });
         var sapDateFormat = sap.ui.core.format.DateFormat.getDateInstance({ pattern: "YYYY-MM-dd" });
         var sapDateFormat2 = sap.ui.core.format.DateFormat.getDateInstance({ pattern: "yyyyMMdd" });
+        var timeFormat = sap.ui.core.format.DateFormat.getTimeInstance({ pattern: "KK:mm:ss a" });
 
         return Controller.extend("zuishipdoc.controller.Main", {
 
@@ -210,6 +211,15 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "SEARCH"});
                 oDDTextParam.push({CODE: "ITEMS"});
                 oDDTextParam.push({CODE: "SUBMIT"});
+
+                oDDTextParam.push({CODE: "PLANTCD"});
+                oDDTextParam.push({CODE: "DESCRIPTION"});
+                oDDTextParam.push({CODE: "CUSTOMER"});
+                oDDTextParam.push({CODE: "NAME1"});
+                oDDTextParam.push({CODE: "SHIPMODE"});
+                oDDTextParam.push({CODE: "UOM"});
+                oDDTextParam.push({CODE: "DESC1"});
+                oDDTextParam.push({CODE: "DESC2"});
 
                 oDDTextParam.push({CODE: "INFO_NO_RECORD_TO_PROC"});
                 oDDTextParam.push({CODE: "INFO_NO_SEL_RECORD_TO_PROC"});
@@ -532,10 +542,10 @@ sap.ui.define([
                                 { item.REFDOCDT = dateFormat.format(new Date(item.REFDOCDT)); }
 
                                 if (!(item.CREATEDDT === null || item.CREATEDDT === ""))
-                                {item.CREATEDDT = dateFormat.format(new Date(item.CREATEDDT)); }
+                                {item.CREATEDDT = dateFormat.format(new Date(item.CREATEDDT)) + " " + me.formatTimeOffSet(item.CREATEDTM.ms); }
     
                                 if (!(item.UPDATEDDT === null || item.UPDATEDDT === ""))
-                                { item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT)); }
+                                { item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT)) + " " + me.formatTimeOffSet(item.UPDATEDTM.ms); }
     
                                 if (!(item.ETD === null || item.ETD === ""))
                                 { item.ETD = dateFormat.format(new Date(item.ETD)); }
@@ -601,14 +611,14 @@ sap.ui.define([
                     urlParameters: {
                         "$filter": "DLVNO eq '" + this.getOwnerComponent().getModel("UI_MODEL").getData().activeDlv + "'"
                     },
-                    success: function (oData) {
+                    success: function (oData) { 
                         if (oData.results.length > 0) {
                             oData.results.forEach((item, index) => {  
-                                if (item.CREATEDDT !== null)
-                                    item.CREATEDDT = dateFormat.format(new Date(item.CREATEDDT));
+                                // if (item.CREATEDDT !== null)
+                                //     item.CREATEDDT = dateFormat.format(new Date(item.CREATEDDT)) + " " + me.formatTimeOffSet(item.CREATEDTM.ms);
     
-                                if (item.UPDATEDDT !== null)
-                                    item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT));
+                                // if (item.UPDATEDDT !== null)
+                                //     item.UPDATEDDT = dateFormat.format(new Date(item.UPDATEDDT)) + " " + me.formatTimeOffSet(item.UPDATEDTM.ms);
     
                                 if (index === 0) item.ACTIVE = "X";
                                 else item.ACTIVE = "";
@@ -843,13 +853,9 @@ sap.ui.define([
 
                     return new sap.ui.table.Column({
                         id: sTabId.replace("Tab", "") + "Col" + sColumnId,
+                        name: sColumnId,
                         label: new sap.m.Text({text: sColumnLabel}), 
                         template: oText,
-                        // template: new sap.m.Text({ 
-                        //     text: "{" + sColumnId + "}", 
-                        //     wrapping: false,
-                        //     tooltip: sColumnDataType === "BOOLEAN" ? "" : "{" + sColumnId + "}"
-                        // }),
                         width: sColumnWidth + 'px',
                         sortProperty: sColumnId,
                         // filterProperty: sColumnId,
@@ -1011,15 +1017,40 @@ sap.ui.define([
 
             onTableResize: function(oEvent) {
                 this._sActiveTable = oEvent.getSource().data("TableId");
-                
+
                 var vFullScreen = oEvent.getSource().data("Max") === "1" ? true : false;
                 var vSuffix = oEvent.getSource().data("ButtonIdSuffix");
+                var vHeader = oEvent.getSource().data("Header");
                 var me = this;
 
-                this.byId("smartFilterBar").setFilterBarExpanded(!vFullScreen);
+                // this.byId("smartFilterBar").setFilterBarExpanded(!vFullScreen);
+                // this.byId('smartFilterBar').setVisible(!vFullScreen)
                 this.byId("btnFullScreen" + vSuffix).setVisible(!vFullScreen);
                 this.byId("btnExitFullScreen" + vSuffix).setVisible(vFullScreen);
-                this._oTables.filter(fItem => fItem.TableId !== me._sActiveTable).forEach(item => me.byId(item.TableId).setVisible(!vFullScreen));
+                // this._oTables.filter(fItem => fItem.TableId !== me._sActiveTable).forEach(item => me.byId(item.TableId).setVisible(!vFullScreen));
+                // this.byId("splitter").enableAutoResize();
+
+                if (vFullScreen) {
+                    // this.byId("splitter").getAggregation("layoutData").setGrowFactor(1);
+
+                    if (vHeader === "1") {
+                        this.byId("splitterHdr").setProperty("size", "100%");
+                        this.byId("splitterDtl").setProperty("size", "0%");
+                    }
+                    else {
+                        this.byId("splitterHdr").setProperty("size", "0%");
+                        this.byId("splitterDtl").setProperty("size", "100%");
+                    }
+
+                    // this.byId("splitter").disableLiveResize();
+                }
+                else {
+                    // this.byId("smartFilterBar").getAggregation("layoutData").setGrowFactor(0.1);
+                    // this.byId("splitter").getAggregation("layoutData").setGrowFactor(0.9);
+                    this.byId("splitterHdr").setProperty("size", "50%");
+                    this.byId("splitterDtl").setProperty("size", "50%");
+                    // this.byId("splitter").enableLiveResize();
+                }
             },
 
             onAfterTableRendering: function (oEvent) {
@@ -1261,6 +1292,11 @@ sap.ui.define([
                 this._sActiveTable = sTabId;
 
                 this.setActiveRowHighlightByTableId(sTabId);
+            },
+
+            formatTimeOffSet(pTime) {
+                let TZOffsetMs = new Date(0).getTimezoneOffset() * 60 * 1000;
+                return timeFormat.format(new Date(pTime + TZOffsetMs));
             },
 
             //******************************************* */

@@ -18,7 +18,13 @@
                 "columns": "tvh_billtocust"
             }
         },
-        {"ColumnName": "SALESTERM", 
+        {"ColumnName": "CUSTGRP", "TextFormatMode": "ValueKey",
+            "ValueHelp": {"show": true, "items": {"path": "custgrp", "value": "CUSTGRP", "text": "DESCRIPTION"},
+                "SuggestionItems": {"path": "custgrp>/", "text": "{custgrp>CUSTGRP}", "additionalText": "{custgrp>DESCRIPTION}",  "maxSuggestionWidth": "400px"},
+                "columns": "tvh_custgrp"
+            }
+        },
+        {"ColumnName": "SALESTERM", "TextFormatMode": "ValueKey",
             "ValueHelp": {"show": true, "items": {"path": "salesterm", "value": "SALESTERM", "text": "DESCRIPTION" },
                 "SuggestionItems": {"path": "salesterm>/", "text": "{salesterm>SALESTERM}", "additionalText": "{salesterm>DESCRIPTION}", "maxSuggestionWidth": "300px"},
                 "columns": "tvh_salesterm"
@@ -68,7 +74,8 @@
         },
         {"ColumnName": "STATUS", "TextFormatMode": "ValueKey",
             "ValueHelp": {"show": true, "items": {"path": "status", "value": "DLVSTATCD", "text": "SHORTTEXT"},
-                "SuggestionItems": {"path": "status>/", "text": "{status>DLVSTATCD}", "additionalText": "{status>SHORTTEXT}", "maxSuggestionWidth": "200px"}
+                "SuggestionItems": {"path": "status>/", "text": "{status>DLVSTATCD}", "additionalText": "{status>SHORTTEXT}", "maxSuggestionWidth": "200px"},
+                "columns": "tvh_status"
             }
         }
     ],
@@ -86,6 +93,10 @@
         {"ColumnName": "NAME1", "DataType": "STRING", "ColumnWidth": "350px", "Visible": true, "Key": false, "Value": true},
         {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "80px", "Visible": false, "Key": false, "Value": false}
     ],
+    "tvh_custgrp": [
+        {"ColumnName": "CUSTGRP", "DataType": "STRING", "ColumnWidth": "150px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "DESCRIPTION", "DataType": "STRING", "ColumnWidth": "250px", "Visible": true, "Key": false, "Value": true}
+    ],
     "tvh_salesterm": [
         {"ColumnName": "SALESTERM", "DataType": "STRING", "ColumnWidth": "150px", "Visible": true, "Key": true, "Value": true},
         {"ColumnName": "DESCRIPTION", "DataType": "STRING", "ColumnWidth": "250px", "Visible": true, "Key": false, "Value": false}
@@ -97,6 +108,10 @@
     "tvh_dest": [
         {"ColumnName": "DESTCD", "DataType": "STRING", "ColumnWidth": "100px", "Visible": true, "Key": true, "Value": false},
         {"ColumnName": "DESC1", "DataType": "STRING", "ColumnWidth": "300px", "Visible": true, "Key": false, "Value": true}
+    ],
+    "tvh_status": [
+        {"ColumnName": "DLVSTATCD", "DataType": "STRING", "ColumnWidth": "100px", "Visible": true, "Key": true, "Value": false},
+        {"ColumnName": "SHORTTEXT", "DataType": "STRING", "ColumnWidth": "300px", "Visible": true, "Key": false, "Value": true}
     ],
     "tvh_consign": [
         {"ColumnName": "CONSIGNCD", "DataType": "STRING", "ColumnWidth": "150px", "Visible": true, "Key": true, "Value": true},

@@ -1,7 +1,7 @@
 <mvc:View controllerName="zuishipdoc.controller.Main"
     xmlns:mvc="sap.ui.core.mvc" 
     xmlns:core="sap.ui.core"
-    xmlns:uiL="sap.ui.layout"
+    xmlns:uiL="sap.ui.layout" 
     xmlns:uiT="sap.ui.table"
     xmlns:plugins="sap.ui.table.plugins"
     xmlns="sap.m"
@@ -58,141 +58,163 @@
                     </smartfilterbar:controlConfiguration>
 
                     <smartfilterbar:layoutData>
-                        <FlexItemData growFactor="0"/>
+                        <FlexItemData growFactor="0.1"/>
                     </smartfilterbar:layoutData>
                 </smartfilterbar:SmartFilterBar>
 
-                <uiT:Table id="mainHeaderTab"
-                    class="sapUiTinyMarginBegin sapUiTinyMarginEnd"
-                    visibleRowCountMode="Auto"     
-                    minAutoRowCount="1"               
-                    showColumnVisibilityMenu="true"
-                    enableColumnFreeze="true"
-                    selectionMode="None"
-                    firstVisibleRowChanged="onFirstVisibleRowChanged"
-                    cellClick="onCellClick"
-                    sort="onSort"
-                    filter="onFilter"
-                    columnFreeze="onColumnUpdated"
-                    columnMove="onColumnUpdated"
-                    columnResize="onColumnUpdated"
-                    columnSelect="onColumnUpdated"
-                    columnVisibility="onColumnUpdated">
-                    <uiT:rowSettingsTemplate>
-                        <uiT:RowSettings highlight="{= ${STATUS} === '50' ? 'Error' : ${STATUS} === '51' ? 'Success' : 'Information'}" />
-                    </uiT:rowSettingsTemplate>
-                    <uiT:extension>
-                        <OverflowToolbar>
-                            <Text text="{counts>/header} {ddtext>/DLVDOCS}" class="selHdrKeyFontStyle" />
-                            <ToolbarSpacer/>
-                            <!-- <SearchField
-                                id="searchFieldMain"
-                                placeholder="Search"
-                                value=""
-                                search="filterGlobally"
-                                width="15rem"/>
-                            <ToolbarSeparator /> -->
-                            <Button id="btnAdd" 
-                                icon="sap-icon://add"
-                                press="onCreate"
-                                tooltip="{ddtext>/ADD}"
-                                visible="true"/>
-                            <Button id="btnEdit" 
-                                icon="sap-icon://edit"
-                                press="onEdit"
-                                tooltip="{ddtext>/EDIT}"
-                                visible="true"/>
-                            <Button id="btnRefreshHdr" 
-                                icon="sap-icon://refresh"
-                                press="onRefresh"
-                                tooltip="{ddtext>/REFRESH}"
-                                visible="true"/>
-                            <Button id="btnFullScreenHdr" 
-                                icon="sap-icon://full-screen"
-                                press="onTableResize"
-                                tooltip="{ddtext>/FULLSCREEN}"
-                                visible="true" >
-                                <customData>
-                                    <core:CustomData key="Max" value="1" />
-                                    <core:CustomData key="TableId" value="mainHeaderTab" />
-                                    <core:CustomData key="ButtonIdSuffix" value="Hdr" />
-                                </customData>
-                            </Button>
-                            <Button id="btnExitFullScreenHdr" 
-                                icon="sap-icon://exit-full-screen"
-                                press="onTableResize"
-                                tooltip="{ddtext>/EXITFULLSCREEN}"
-                                visible="false" >
-                                <customData>
-                                    <core:CustomData key="Max" value="0" />
-                                    <core:CustomData key="TableId" value="mainHeaderTab" />
-                                    <core:CustomData key="ButtonIdSuffix" value="Hdr" />
-                                </customData>
-                            </Button>
-                            <!-- <Button id="btnTabLayout"
-                                icon="sap-icon://grid" 
-                                tooltip="{ddtext>/SAVELAYOUT}" 
-                                press="onSaveTableLayout"/> -->
-                        </OverflowToolbar>
-                    </uiT:extension>
-                    <uiT:layoutData>
-                        <FlexItemData growFactor="1" baseSize="0%"/>
-                    </uiT:layoutData>                        
-                </uiT:Table> 
+                    <uiL:Splitter id="splitter" orientation="Vertical">
+                        <Panel id="panelHdr" width="100%" height="100%" class="sapUiNoContentPadding">
+                            <uiT:Table id="mainHeaderTab"
+                                class="sapUiTinyMarginBegin sapUiTinyMarginEnd"
+                                visibleRowCountMode="Auto"     
+                                minAutoRowCount="1"               
+                                showColumnVisibilityMenu="true"
+                                enableColumnFreeze="true"
+                                selectionMode="None"
+                                firstVisibleRowChanged="onFirstVisibleRowChanged"
+                                cellClick="onCellClick"
+                                sort="onSort"
+                                filter="onFilter"
+                                alternateRowColors="true"
+                                columnFreeze="onColumnUpdated"
+                                columnMove="onColumnUpdated"
+                                columnResize="onColumnUpdated"
+                                columnSelect="onColumnUpdated"
+                                columnVisibility="onColumnUpdated">
+                                <uiT:rowSettingsTemplate>
+                                    <uiT:RowSettings highlight="{= ${STATUS} === '50' ? 'Error' : ${STATUS} === '51' ? 'Success' : 'Information'}" />
+                                </uiT:rowSettingsTemplate>
+                                <uiT:extension>
+                                    <OverflowToolbar>
+                                        <Text text="{counts>/header} {ddtext>/DLVDOCS}" class="selHdrKeyFontStyle" />
+                                        <ToolbarSpacer/>
+                                        <!-- <SearchField
+                                            id="searchFieldMain"
+                                            placeholder="Search"
+                                            value=""
+                                            search="filterGlobally"
+                                            width="15rem"/>
+                                        <ToolbarSeparator /> -->
+                                        <Button id="btnAdd" 
+                                            icon="sap-icon://add"
+                                            press="onCreate"
+                                            tooltip="{ddtext>/ADD}"
+                                            visible="true"/>
+                                        <Button id="btnEdit" 
+                                            icon="sap-icon://edit"
+                                            press="onEdit"
+                                            tooltip="{ddtext>/EDIT}"
+                                            visible="true"/>
+                                        <Button id="btnRefreshHdr" 
+                                            icon="sap-icon://refresh"
+                                            press="onRefresh"
+                                            tooltip="{ddtext>/REFRESH}"
+                                            visible="true"/>
+                                        <Button id="btnFullScreenHdr" 
+                                            icon="sap-icon://full-screen"
+                                            press="onTableResize"
+                                            tooltip="{ddtext>/FULLSCREEN}"
+                                            visible="true" >
+                                            <customData>
+                                                <core:CustomData key="Max" value="1" />
+                                                <core:CustomData key="TableId" value="mainHeaderTab" />
+                                                <core:CustomData key="ButtonIdSuffix" value="Hdr" />
+                                                <core:CustomData key="Header" value="1" />
+                                            </customData>
+                                        </Button>
+                                        <Button id="btnExitFullScreenHdr" 
+                                            icon="sap-icon://exit-full-screen"
+                                            press="onTableResize"
+                                            tooltip="{ddtext>/EXITFULLSCREEN}"
+                                            visible="false" >
+                                            <customData>
+                                                <core:CustomData key="Max" value="0" />
+                                                <core:CustomData key="TableId" value="mainHeaderTab" />
+                                                <core:CustomData key="ButtonIdSuffix" value="Hdr" />
+                                                <core:CustomData key="Header" value="1" />
+                                            </customData>
+                                        </Button>
+                                        <!-- <Button id="btnTabLayout"
+                                            icon="sap-icon://grid" 
+                                            tooltip="{ddtext>/SAVELAYOUT}" 
+                                            press="onSaveTableLayout"/> -->
+                                    </OverflowToolbar>
+                                </uiT:extension>
+                                <uiT:layoutData>
+                                    <FlexItemData growFactor="1" baseSize="0%"/>
+                                </uiT:layoutData>                        
+                            </uiT:Table> 
+                            <layoutData>
+                                <uiL:SplitterLayoutData size="50%" id="splitterHdr" />
+                            </layoutData> 
+                        </Panel>
 
-                <uiT:Table id="mainDetailTab"
-                    class="sapUiTinyMarginBegin sapUiTinyMarginEnd"
-                    visibleRowCountMode="Auto"
-                    minAutoRowCount="1"
-                    showColumnVisibilityMenu="true"
-                    enableColumnFreeze="true"
-                    selectionMode="None"
-                    firstVisibleRowChanged="onFirstVisibleRowChanged"
-                    cellClick="onCellClick"
-                    sort="onSort"
-                    filter="onFilter"
-                    columnFreeze="onColumnUpdated"
-                    columnMove="onColumnUpdated"
-                    columnResize="onColumnUpdated"
-                    columnSelect="onColumnUpdated"
-                    columnVisibility="onColumnUpdated">
-                    <uiT:extension>
-                        <OverflowToolbar class="dtlToolbarBorderTop">
-                            <Text text="{ddtext>/DLVNO}: {ui>/activeDlv} ( {counts>/detail} {ddtext>/DLVSCHD} )" class="selHdrKeyFontStyle" />
-                            <ToolbarSpacer/>
-                            <Button id="btnRefreshDtl" 
-                                icon="sap-icon://refresh"
-                                press="onRefresh"
-                                tooltip="{ddtext>/REFRESH}"
-                                visible="true"/>
-                            <Button id="btnFullScreenDtl" 
-                                icon="sap-icon://full-screen"
-                                press="onTableResize"
-                                tooltip="{ddtext>/FULLSCREEN}"
-                                visible="true" >
-                                <customData>
-                                    <core:CustomData key="Max" value="1" />
-                                    <core:CustomData key="TableId" value="mainDetailTab" />
-                                    <core:CustomData key="ButtonIdSuffix" value="Dtl" />
-                                </customData>
-                            </Button>
-                            <Button id="btnExitFullScreenDtl" 
-                                icon="sap-icon://exit-full-screen"
-                                press="onTableResize"
-                                tooltip="{ddtext>/EXITFULLSCREEN}"
-                                visible="false" >
-                                <customData>
-                                    <core:CustomData key="Max" value="0" />
-                                    <core:CustomData key="TableId" value="mainDetailTab" />
-                                    <core:CustomData key="ButtonIdSuffix" value="Dtl" />
-                                </customData>
-                            </Button>
-                        </OverflowToolbar>
-                    </uiT:extension>
-                    <uiT:layoutData>
-                        <FlexItemData growFactor="1" baseSize="0%"/>
-                    </uiT:layoutData> 
-                </uiT:Table>                  
+                        <Panel id="panelDtl" width="100%" height="100%" class="sapUiNoContentPadding">    
+                            <uiT:Table id="mainDetailTab"
+                                class="sapUiTinyMarginBegin sapUiTinyMarginEnd"
+                                visibleRowCountMode="Auto"
+                                minAutoRowCount="1"
+                                showColumnVisibilityMenu="true"
+                                enableColumnFreeze="true"
+                                selectionMode="None"
+                                firstVisibleRowChanged="onFirstVisibleRowChanged"
+                                cellClick="onCellClick"
+                                sort="onSort"
+                                filter="onFilter"
+                                alternateRowColors="true"
+                                columnFreeze="onColumnUpdated"
+                                columnMove="onColumnUpdated"
+                                columnResize="onColumnUpdated"
+                                columnSelect="onColumnUpdated"
+                                columnVisibility="onColumnUpdated">
+                                <uiT:extension>
+                                    <OverflowToolbar class="dtlToolbarBorderTop">
+                                        <Text text="{ddtext>/DLVNO}: {ui>/activeDlv} ( {counts>/detail} {ddtext>/DLVSCHD} )" class="selHdrKeyFontStyle" />
+                                        <ToolbarSpacer/>
+                                        <Button id="btnRefreshDtl" 
+                                            icon="sap-icon://refresh"
+                                            press="onRefresh"
+                                            tooltip="{ddtext>/REFRESH}"
+                                            visible="true"/>
+                                        <Button id="btnFullScreenDtl" 
+                                            icon="sap-icon://full-screen"
+                                            press="onTableResize"
+                                            tooltip="{ddtext>/FULLSCREEN}"
+                                            visible="true" >
+                                            <customData>
+                                                <core:CustomData key="Max" value="1" />
+                                                <core:CustomData key="TableId" value="mainDetailTab" />
+                                                <core:CustomData key="ButtonIdSuffix" value="Dtl" />
+                                                <core:CustomData key="Header" value="0" />
+                                            </customData>
+                                        </Button>
+                                        <Button id="btnExitFullScreenDtl" 
+                                            icon="sap-icon://exit-full-screen"
+                                            press="onTableResize"
+                                            tooltip="{ddtext>/EXITFULLSCREEN}"
+                                            visible="false" >
+                                            <customData>
+                                                <core:CustomData key="Max" value="0" />
+                                                <core:CustomData key="TableId" value="mainDetailTab" />
+                                                <core:CustomData key="ButtonIdSuffix" value="Dtl" />
+                                                <core:CustomData key="Header" value="0" />
+                                            </customData>
+                                        </Button>
+                                    </OverflowToolbar>
+                                </uiT:extension>
+                                <uiT:layoutData>
+                                    <FlexItemData growFactor="1" baseSize="0%"/>
+                                </uiT:layoutData> 
+                            </uiT:Table> 
+                            <layoutData>
+                                <uiL:SplitterLayoutData size="50%" id="splitterDtl" />
+                            </layoutData> 
+                        </Panel>
+
+                        <uiL:layoutData>
+                            <FlexItemData growFactor="1" baseSize="0%"/>
+                        </uiL:layoutData>
+                    </uiL:Splitter>  
             </VBox>
         </content>
     </Page>
