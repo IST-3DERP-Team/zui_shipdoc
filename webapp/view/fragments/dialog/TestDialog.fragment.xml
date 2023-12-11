@@ -1,0 +1,52 @@
+<core:FragmentDefinition
+		xmlns="sap.m"
+        xmlns:form="sap.ui.layout.form"
+		xmlns:core="sap.ui.core"
+        xmlns:uit="sap.ui.table"
+        id="fragment-createcosting" 
+        fragmentName="createcosting">
+    <Dialog contentWidth="375px"
+        contentHeight="315px"
+        title="Create Costing"
+        beforeOpen="beforeOpenCreateCosting"
+        afterOpen="afterOpenCreateCosting"
+        resizable="true"
+        draggable="true">
+        <content>
+            <form:Form id="CreateCostingForm" editable="true" class="sapUiNoContentPadding">
+                <form:layout>
+                    <form:ResponsiveGridLayout columnsXL="1" columnsL="1" />
+                </form:layout>
+                <form:formContainers>
+                    <form:FormContainer ariaLabelledBy="Grp1">
+                        <form:formElements>
+                            <form:FormElement label="{ddtext>/CSTYPE}">
+                                <form:fields>
+                                    <Input id="COL1"
+                                        type="Text"
+                                        enabled="true" 
+                                        value="{data>/PLANTCD}"
+                                        textFormatMode="Key"	
+                                        required="true"
+                                        change="onFormValueHelpInputChange"
+                                        showValueHelp="true"
+                                        valueHelpRequest="handleFormValueHelp"
+                                        showSuggestion="true" 
+                                        maxSuggestionWidth="325px"
+                                        suggestionItems="{path:'issplant>/', templateShareable:false}">
+                                        <suggestionItems>
+                                            <core:ListItem key="{issplant>PLANTCD}" text="{issplant>PLANTCD}" />
+                                        </suggestionItems>
+                                    </Input>                                    
+                                </form:fields>
+                            </form:FormElement>                             
+                        </form:formElements>
+                    </form:FormContainer>
+                </form:formContainers>
+            </form:Form>
+        </content>
+        <buttons>
+            <Button icon="sap-icon://decline" text="{ddtext>/CANCEL}" tooltip="{ddtext>/CANCEL}" press="onCancelTest" />        
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

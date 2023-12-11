@@ -134,10 +134,10 @@
                                                 <core:CustomData key="Header" value="1" />
                                             </customData>
                                         </Button>
-                                        <!-- <Button id="btnTabLayout"
-                                            icon="sap-icon://grid" 
-                                            tooltip="{ddtext>/SAVELAYOUT}" 
-                                            press="onSaveTableLayout"/> -->
+                                        <Button id="btnTest"
+                                            text="Test"
+                                            press="onTest"
+                                            visible="false" />
                                     </OverflowToolbar>
                                 </uiT:extension>
                                 <uiT:layoutData>

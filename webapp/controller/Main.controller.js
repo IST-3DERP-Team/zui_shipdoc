@@ -1299,6 +1299,29 @@ sap.ui.define([
                 return timeFormat.format(new Date(pTime + TZOffsetMs));
             },
 
+            onTest: function(oEvent) {
+                var aCreateCostingModel = {
+                    data: {
+                        PLANTCD: ""
+                    }
+                }
+
+                if (!this._CreateCostingDialog) {
+                    this._CreateCostingDialog = sap.ui.xmlfragment("zuishipdoc.view.fragments.dialog.TestDialog", this);
+                    this._CreateCostingDialog.setModel(new JSONModel(aCreateCostingModel));
+                    this.getView().addDependent(this._CreateCostingDialog);
+                }
+                else {
+                    this._CreateCostingDialog.setModel(new JSONModel(aCreateCostingModel));
+                }
+
+                this._CreateCostingDialog.open();
+            },
+
+            onCancelTest: function(oEvent) {
+                this._CreateCostingDialog.close();
+            },
+
             //******************************************* */
             // Column Filtering
             //******************************************* */
