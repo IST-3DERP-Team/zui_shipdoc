@@ -26,6 +26,21 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             this._tableValueHelp = TableValueHelp;
             this._tableFilter = TableFilter;
 
+            this._oTableLayout = {
+                delvDtlTab: {
+                    type: "SHPDOCDLVDTLS",
+                    tabname: "Z3DERP_SHPDCDLVD"
+                },
+                delvStatTab: {
+                    type: "SHPDOCDLVSTAT",
+                    tabname: "ZERP_DLVSTAT"
+                },
+                delvSchedTab: {
+                    type: "SHPDOCDLVSCHD",
+                    tabname: "Z3DERP_SHPDCDLVS"
+                }
+            }
+
             var oView = this.getView();
             oView.addEventDelegate({
                 onBeforeHide: function(oEvent) {
@@ -240,7 +255,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             })); 
 
             this.getView().setModel(new JSONModel({
-                fullscreen: false
+                fullscreen: false,
+                dataWrap: {
+                    delvSchedTab: false,
+                    delvDtlTab: false,
+                    delvStatTab: false
+                }
             }), "ui");
 
             this.getView().setModel(new JSONModel({
@@ -519,11 +539,12 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 var sColumnSorted = context.getObject().Sorted;
                 var sColumnSortOrder = context.getObject().SortOrder;
                 var sColumnDataType = context.getObject().DataType;
+                var sTextWrapping = context.getObject().WrapText;
 
                 if (sColumnWidth === 0) sColumnWidth = 100;
 
                 var oText = new sap.m.Text({
-                    wrapping: false,
+                    wrapping: sTextWrapping === "X" ? true : false,
                     tooltip: sColumnDataType === "BOOLEAN" ? "" : "{" + sColumnId + "}"
                 })
 
@@ -606,6 +627,9 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     });
                 }
             });
+
+            var vWrap = oColumns[0].WrapText === "X" ? true : false;
+            this.getView().getModel("ui").setProperty("/dataWrap/" + sTabId, vWrap);
 
             //date/number sorting
             oTable.attachSort(function(oEvent) {
@@ -1052,7 +1076,9 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                     this.getView().byId("btnRefreshDelvDtl").setVisible(false);
                     this.getView().byId("btnSaveDelvDtl").setVisible(true);
                     this.getView().byId("btnCancelDelvDtl").setVisible(true);
-    
+                    this.getView().byId("btnTabLayoutDelvDtl").setVisible(false);
+                    this.getView().byId("btnDataWrapDelvDtl").setVisible(false);
+
                     this.getView().byId("btnEditHdr").setEnabled(false);
                     this.getView().byId("btnRefreshHdr").setEnabled(false);
                     this.getView().byId("btnComplete").setEnabled(false);
@@ -1195,6 +1221,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                         this.getView().byId("btnRefreshDelvDtl").setVisible(true);
                         this.getView().byId("btnSaveDelvDtl").setVisible(false);
                         this.getView().byId("btnCancelDelvDtl").setVisible(false);
+                        this.getView().byId("btnTabLayoutDelvDtl").setVisible(true);
+                        this.getView().byId("btnDataWrapDelvDtl").setVisible(true);
         
                         this.getView().byId("btnEditHdr").setEnabled(true);
                         this.getView().byId("btnRefreshHdr").setEnabled(true);
@@ -1772,6 +1800,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                             me.getView().byId("btnRefreshDelvDtl").setVisible(true);
                             me.getView().byId("btnSaveDelvDtl").setVisible(false);
                             me.getView().byId("btnCancelDelvDtl").setVisible(false);
+                            me.getView().byId("btnTabLayoutDelvDtl").setVisible(true);
+                            me.getView().byId("btnDataWrapDelvDtl").setVisible(true);
             
                             me.getView().byId("btnEditHdr").setEnabled(true);
                             me.getView().byId("btnRefreshHdr").setEnabled(true);
@@ -2558,6 +2588,8 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
                 this.getView().byId("btnRefreshDelvDtl").setVisible(true);
                 this.getView().byId("btnSaveDelvDtl").setVisible(false);
                 this.getView().byId("btnCancelDelvDtl").setVisible(false);
+                this.getView().byId("btnTabLayoutDelvDtl").setVisible(true);
+                this.getView().byId("btnDataWrapDelvDtl").setVisible(true);
 
                 this.getView().byId("btnEditHdr").setEnabled(true);
                 this.getView().byId("btnRefreshHdr").setEnabled(true);
@@ -3371,6 +3403,66 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         formatTimeOffSet(pTime) {
             let TZOffsetMs = new Date(0).getTimezoneOffset() * 60 * 1000;
             return timeFormat.format(new Date(pTime + TZOffsetMs));
+        },
+
+        onWrapText: function(oEvent) {
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            var vWrap = this.getView().getModel("ui").getData().dataWrap[this._sActiveTable];
+            
+            this.byId(this._sActiveTable).getColumns().forEach(col => {
+                var oTemplate = col.getTemplate();
+                oTemplate.setWrapping(!vWrap);
+                col.setTemplate(oTemplate);
+            })
+
+            this.getView().getModel("ui").setProperty("/dataWrap/" + [this._sActiveTable], !vWrap);
+        },
+
+        onSaveTableLayout: function (oEvent) {
+            //saving of the layout of table
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            var oTable = this.byId(this._sActiveTable);
+            var oColumns = oTable.getColumns();
+            var vSBU = this.getOwnerComponent().getModel("UI_MODEL").getData().sbu; 
+            var me = this;
+            var ctr = 1;
+
+            var oParam = {
+                "SBU": vSBU,
+                "TYPE": this._oTableLayout[this._sActiveTable].type,
+                "TABNAME": this._oTableLayout[this._sActiveTable].tabname,
+                "TableLayoutToItems": []
+            };
+
+            //get information of columns, add to payload
+            oColumns.forEach((column) => {
+                oParam.TableLayoutToItems.push({
+                    // COLUMNNAME: column.sId,
+                    COLUMNNAME: column.mProperties.sortProperty,
+                    ORDER: ctr.toString(),
+                    SORTED: column.mProperties.sorted,
+                    SORTORDER: column.mProperties.sortOrder,
+                    SORTSEQ: "1",
+                    VISIBLE: column.mProperties.visible,
+                    WIDTH: column.mProperties.width.replace('px',''),
+                    WRAPTEXT: this.getView().getModel("ui").getData().dataWrap[this._sActiveTable] === true ? "X" : ""
+                });
+
+                ctr++;
+            });
+
+            //call the layout save
+            var oModel = this.getOwnerComponent().getModel("ZGW_3DERP_COMMON_SRV");
+
+            oModel.create("/TableLayoutSet", oParam, {
+                method: "POST",
+                success: function(data, oResponse) {
+                    MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_LAYOUT_SAVE"]);
+                },
+                error: function(err) {
+                    MessageBox.error(err);
+                }
+            });                
         },
 
         //******************************************* */

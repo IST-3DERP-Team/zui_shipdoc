@@ -48,6 +48,17 @@ sap.ui.define([
                     { TableId: "mainDetailTab" }
                 ]
 
+                this._oTableLayout = {
+                    mainHeaderTab: {
+                        type: "SHPDOCMAINHDR",
+                        tabname: "Z3DERP_SHPDCDLVH"
+                    },
+                    mainDetailTab: {
+                        type: "SHPDOCDLVSCHD",
+                        tabname: "Z3DERP_SHPDCDLVS"
+                    }
+                }
+
                 this.getOwnerComponent().getModel("UI_MODEL").setProperty("/action", this._dataMode);
                 this.getOwnerComponent().getModel("LOCK_MODEL").setProperty("/item", this._oLock);
 
@@ -61,7 +72,11 @@ sap.ui.define([
                 });
 
                 this.getView().setModel(new JSONModel({
-                    activeDlv: ""
+                    activeDlv: "",
+                    dataWrap: {
+                        mainHeaderTab: false,
+                        mainDetailTab: false
+                    }
                 }), "ui");
 
                 this.getView().setModel(new JSONModel({
@@ -220,6 +235,9 @@ sap.ui.define([
                 oDDTextParam.push({CODE: "UOM"});
                 oDDTextParam.push({CODE: "DESC1"});
                 oDDTextParam.push({CODE: "DESC2"});
+                oDDTextParam.push({CODE: "SAVELAYOUT"});
+                oDDTextParam.push({CODE: "WRAP"});
+                oDDTextParam.push({CODE: "UNWRAP"});
 
                 oDDTextParam.push({CODE: "INFO_NO_RECORD_TO_PROC"});
                 oDDTextParam.push({CODE: "INFO_NO_SEL_RECORD_TO_PROC"});
@@ -303,6 +321,10 @@ sap.ui.define([
                 this.getView().byId("btnAdd").setEnabled(false);
                 this.getView().byId("btnEdit").setEnabled(false);
                 this.getView().byId("btnRefreshHdr").setEnabled(false);
+                this.getView().byId("btnTabLayoutHdr").setEnabled(false);
+                this.getView().byId("btnDataWrapHdr").setEnabled(false);
+                this.getView().byId("btnTabLayoutDtl").setEnabled(false);
+                this.getView().byId("btnDataWrapDtl").setEnabled(false);
                 this.getView().byId("btnRefreshDtl").setEnabled(false);
 
                 if (sap.ui.getCore().byId("backBtn") !== undefined) {
@@ -691,6 +713,10 @@ sap.ui.define([
                                 me.byId("btnAdd").setEnabled(true);
                                 me.byId("btnEdit").setEnabled(true);
                                 me.byId("btnRefreshHdr").setEnabled(true);
+                                me.byId("btnTabLayoutHdr").setEnabled(true);
+                                me.byId("btnDataWrapHdr").setEnabled(true);
+                                me.byId("btnTabLayoutDtl").setEnabled(true);
+                                me.byId("btnDataWrapDtl").setEnabled(true);
                                 me.byId("btnRefreshDtl").setEnabled(true);
                             }
                             else {
@@ -705,7 +731,11 @@ sap.ui.define([
     
                                 me.byId("btnAdd").setEnabled(false);
                                 me.byId("btnEdit").setEnabled(false);
-                                me.byId("btnRefreshHdr").setEnabled(false);   
+                                me.byId("btnRefreshHdr").setEnabled(false);
+                                me.byId("btnTabLayoutHdr").setEnabled(false);
+                                me.byId("btnDataWrapHdr").setEnabled(false);
+                                me.byId("btnTabLayoutDtl").setEnabled(false);
+                                me.byId("btnDataWrapDtl").setEnabled(false);
                                 me.byId("btnRefreshDtl").setEnabled(false);                      
                             }
                         }
@@ -730,11 +760,12 @@ sap.ui.define([
                     var sColumnSorted = context.getObject().Sorted;
                     var sColumnSortOrder = context.getObject().SortOrder;
                     var sColumnDataType = context.getObject().DataType;
+                    var sTextWrapping = context.getObject().WrapText;
 
                     if (sColumnWidth === 0) sColumnWidth = 100;
 
                     var oText = new sap.m.Text({
-                        wrapping: false,
+                        wrapping: sTextWrapping === "X" ? true : false,
                         tooltip: sColumnDataType === "BOOLEAN" ? "" : "{" + sColumnId + "}"
                     })
 
@@ -866,6 +897,9 @@ sap.ui.define([
                         sortOrder: ((sColumnSorted === true) ? sColumnSortOrder : "Ascending" ),
                     });
                 });
+
+                var vWrap = oColumns[0].WrapText === "X" ? true : false;
+                this.getView().getModel("ui").setProperty("/dataWrap/" + sTabId, vWrap);
 
                 //date/number sorting
                 oTable.attachSort(function(oEvent) {
@@ -1051,6 +1085,53 @@ sap.ui.define([
                     this.byId("splitterDtl").setProperty("size", "50%");
                     // this.byId("splitter").enableLiveResize();
                 }
+            },
+
+            onSaveTableLayout: function (oEvent) {
+                //saving of the layout of table
+                this._sActiveTable = oEvent.getSource().data("TableId");
+                var oTable = this.byId(this._sActiveTable);
+                var oColumns = oTable.getColumns();
+                var vSBU = this.getOwnerComponent().getModel("UI_MODEL").getData().sbu;
+                var me = this;
+                var ctr = 1;
+
+                var oParam = {
+                    "SBU": vSBU,
+                    "TYPE": this._oTableLayout[this._sActiveTable].type,
+                    "TABNAME": this._oTableLayout[this._sActiveTable].tabname,
+                    "TableLayoutToItems": []
+                };
+
+                //get information of columns, add to payload
+                oColumns.forEach((column) => {
+                    oParam.TableLayoutToItems.push({
+                        // COLUMNNAME: column.sId,
+                        COLUMNNAME: column.mProperties.sortProperty,
+                        ORDER: ctr.toString(),
+                        SORTED: column.mProperties.sorted,
+                        SORTORDER: column.mProperties.sortOrder,
+                        SORTSEQ: "1",
+                        VISIBLE: column.mProperties.visible,
+                        WIDTH: column.mProperties.width.replace('px',''),
+                        WRAPTEXT: this.getView().getModel("ui").getData().dataWrap[this._sActiveTable] === true ? "X" : ""
+                    });
+
+                    ctr++;
+                });
+
+                //call the layout save
+                var oModel = this.getOwnerComponent().getModel("ZGW_3DERP_COMMON_SRV");
+
+                oModel.create("/TableLayoutSet", oParam, {
+                    method: "POST",
+                    success: function(data, oResponse) {
+                        MessageBox.information(me.getView().getModel("ddtext").getData()["INFO_LAYOUT_SAVE"]);
+                    },
+                    error: function(err) {
+                        MessageBox.error(err);
+                    }
+                });                
             },
 
             onAfterTableRendering: function (oEvent) {
@@ -1297,6 +1378,19 @@ sap.ui.define([
             formatTimeOffSet(pTime) {
                 let TZOffsetMs = new Date(0).getTimezoneOffset() * 60 * 1000;
                 return timeFormat.format(new Date(pTime + TZOffsetMs));
+            },
+
+            onWrapText: function(oEvent) {
+                this._sActiveTable = oEvent.getSource().data("TableId");
+                var vWrap = this.getView().getModel("ui").getData().dataWrap[this._sActiveTable];
+                
+                this.byId(this._sActiveTable).getColumns().forEach(col => {
+                    var oTemplate = col.getTemplate();
+                    oTemplate.setWrapping(!vWrap);
+                    col.setTemplate(oTemplate);
+                })
+
+                this.getView().getModel("ui").setProperty("/dataWrap/" + [this._sActiveTable], !vWrap);
             },
 
             onTest: function(oEvent) {

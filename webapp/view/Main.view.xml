@@ -134,6 +134,23 @@
                                                 <core:CustomData key="Header" value="1" />
                                             </customData>
                                         </Button>
+                                        <Button id="btnTabLayoutHdr"
+                                            icon="sap-icon://grid" 
+                                            tooltip="{ddtext>/SAVELAYOUT}" 
+                                            press="onSaveTableLayout" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="mainHeaderTab" />
+                                            </customData>
+                                        </Button>
+                                        <Button id="btnDataWrapHdr" 
+                                            text="{= ${ui>/dataWrap/mainHeaderTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                            press="onWrapText"
+                                            tooltip="{= ${ui>/dataWrap/mainHeaderTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                            visible="true" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="mainHeaderTab" />
+                                            </customData>
+                                        </Button>
                                         <Button id="btnTest"
                                             text="Test"
                                             press="onTest"
@@ -198,6 +215,23 @@
                                                 <core:CustomData key="TableId" value="mainDetailTab" />
                                                 <core:CustomData key="ButtonIdSuffix" value="Dtl" />
                                                 <core:CustomData key="Header" value="0" />
+                                            </customData>
+                                        </Button>
+                                        <Button id="btnTabLayoutDtl"
+                                            icon="sap-icon://grid" 
+                                            tooltip="{ddtext>/SAVELAYOUT}" 
+                                            press="onSaveTableLayout" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="mainDetailTab" />
+                                            </customData>
+                                        </Button>
+                                        <Button id="btnDataWrapDtl" 
+                                            text="{= ${ui>/dataWrap/mainDetailTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                            press="onWrapText"
+                                            tooltip="{= ${ui>/dataWrap/mainDetailTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                            visible="true" >
+                                            <customData>
+                                                <core:CustomData key="TableId" value="mainDetailTab" />
                                             </customData>
                                         </Button>
                                     </OverflowToolbar>

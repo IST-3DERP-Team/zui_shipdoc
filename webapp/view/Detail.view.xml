@@ -658,6 +658,23 @@
                                                         <core:CustomData key="Max" value="0" />
                                                     </customData>
                                                 </Button>
+                                                <Button id="btnTabLayoutDelvSched"
+                                                    icon="sap-icon://grid" 
+                                                    tooltip="{ddtext>/SAVELAYOUT}" 
+                                                    press="onSaveTableLayout" >
+                                                    <customData>
+                                                        <core:CustomData key="TableId" value="delvSchedTab" />
+                                                    </customData>
+                                                </Button>
+                                                <Button id="btnDataWrapDelvSched" 
+                                                    text="{= ${ui>/dataWrap/delvSchedTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                                    press="onWrapText"
+                                                    tooltip="{= ${ui>/dataWrap/delvSchedTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                                    visible="true" >
+                                                    <customData>
+                                                        <core:CustomData key="TableId" value="delvSchedTab" />
+                                                    </customData>
+                                                </Button>
                                             </OverflowToolbar>
                                         </uiT:extension> 
                                     </uiT:Table>
@@ -1293,6 +1310,23 @@
                                                         <core:CustomData key="Max" value="0" />
                                                     </customData>
                                                 </Button>
+                                                <Button id="btnTabLayoutDelvDtl"
+                                                    icon="sap-icon://grid" 
+                                                    tooltip="{ddtext>/SAVELAYOUT}" 
+                                                    press="onSaveTableLayout" >
+                                                    <customData>
+                                                        <core:CustomData key="TableId" value="delvDtlTab" />
+                                                    </customData>
+                                                </Button>
+                                                <Button id="btnDataWrapDelvDtl" 
+                                                    text="{= ${ui>/dataWrap/delvDtlTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                                    press="onWrapText"
+                                                    tooltip="{= ${ui>/dataWrap/delvDtlTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                                    visible="true" >
+                                                    <customData>
+                                                        <core:CustomData key="TableId" value="delvDtlTab" />
+                                                    </customData>
+                                                </Button>
                                             </OverflowToolbar>
                                         </uiT:extension> 
                                     </uiT:Table>
@@ -1344,6 +1378,23 @@
                                                     visible="{ui>/fullscreen}" >
                                                     <customData>
                                                         <core:CustomData key="Max" value="0" />
+                                                    </customData>
+                                                </Button>
+                                                <Button id="btnTabLayoutDelvStat"
+                                                    icon="sap-icon://grid" 
+                                                    tooltip="{ddtext>/SAVELAYOUT}" 
+                                                    press="onSaveTableLayout" >
+                                                    <customData>
+                                                        <core:CustomData key="TableId" value="delvStatTab" />
+                                                    </customData>
+                                                </Button>
+                                                <Button id="btnDataWrapDelvStat" 
+                                                    text="{= ${ui>/dataWrap/delvStatTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                                    press="onWrapText"
+                                                    tooltip="{= ${ui>/dataWrap/delvStatTab} === true ? ${ddtext>/UNWRAP} : ${ddtext>/WRAP} }"
+                                                    visible="true" >
+                                                    <customData>
+                                                        <core:CustomData key="TableId" value="delvStatTab" />
                                                     </customData>
                                                 </Button>
                                             </OverflowToolbar>
