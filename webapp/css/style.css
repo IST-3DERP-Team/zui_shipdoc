@@ -58,3 +58,15 @@
 .sapMDialogScroll {
     height: 98%;
 }
+
+.splitterMain > .sapMFlexItem, .splitter > .sapMFlexItem {
+    height: 100%;
+}
+
+.icontabbar {
+    position: relative;
+}
+
+.splitter section:nth-of-type(2) {
+    display: flex !important;
+}

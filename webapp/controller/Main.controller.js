@@ -6,11 +6,12 @@ sap.ui.define([
     "sap/ui/model/Filter",
 	"sap/ui/model/FilterOperator",
     "../js/TableFilter",
+    "../js/SmartFilterCustomControl",
 ],
     /**
      * @param {typeof sap.ui.core.mvc.Controller} Controller
      */
-    function (Controller,JSONModel,MessageBox,Common,Filter,FilterOperator,TableFilter) {
+    function (Controller,JSONModel,MessageBox,Common,Filter,FilterOperator,TableFilter,SmartFilterCustomControl) {
         "use strict";
 
         var me;
@@ -41,6 +42,7 @@ sap.ui.define([
                 this._oModel = this.getOwnerComponent().getModel();
                 this._oModelCommon = this.getOwnerComponent().getModel("ZGW_3DERP_COMMON_SRV");
                 this._tableFilter = TableFilter;
+                this._smartFilterCustomControl = SmartFilterCustomControl;
                 this._colFilters = {};
                 this._oLock = [];
                 this._oTables = [
@@ -73,6 +75,10 @@ sap.ui.define([
 
                 this.getView().setModel(new JSONModel({
                     activeDlv: "",
+                    fullscreen: {
+                        header: false,
+                        detail: false
+                    },
                     dataWrap: {
                         mainHeaderTab: false,
                         mainDetailTab: false
@@ -96,7 +102,7 @@ sap.ui.define([
                         rows: []
                 }));   
 
-                this.setSmartFilterModel();
+                SmartFilterCustomControl.setSmartFilterModel(this);
 
                 var oModel = this.getOwnerComponent().getModel("ZVB_3DERP_SHIPDOC_FILTERS_CDS");
 
@@ -533,10 +539,49 @@ sap.ui.define([
                 //     }
                 // }
                 
-                var aFilters = this.getView().byId("smartFilterBar").getFilters();   
+                var oSmartFilter = this.getView().byId("smartFilterBar").getFilters();
+                var aFilters = [], aFilter = [], aSmartFilter = [];
+
+                if (oSmartFilter.length > 0)  {
+                    oSmartFilter[0].aFilters.forEach(item => {
+                        if (item.aFilters === undefined) {
+                            aFilter.push(new Filter(item.sPath, item.sOperator, item.oValue1));
+                        }
+                        else {
+                            aFilters.push(item);
+                        }
+                    })
+
+                    if (aFilter.length > 0) { aFilters.push(new Filter(aFilter, false)); }
+                }
+
+                if (Object.keys(this._oSmartFilterCustomControlProp).length > 0) {
+                    Object.keys(this._oSmartFilterCustomControlProp).forEach(item => {
+                        var oCtrl = this.getView().byId("smartFilterBar").determineControlByName(item);
+
+                        if (oCtrl) {
+                            var aCustomFilter = [];
+    
+                            if (oCtrl.getTokens().length === 1) {
+                                oCtrl.getTokens().map(function(oToken) {
+                                    aFilters.push(new Filter(item, FilterOperator.EQ, oToken.getKey()))
+                                })
+                            }
+                            else if (oCtrl.getTokens().length > 1) {
+                                oCtrl.getTokens().map(function(oToken) {
+                                    aCustomFilter.push(new Filter(item, FilterOperator.EQ, oToken.getKey()))
+                                })
+    
+                                aFilters.push(new Filter(aCustomFilter));
+                            }
+                        }
+                    })
+                }
+
+                aSmartFilter.push(new Filter(aFilters, true));
 
                 this._oModel.read('/HeaderSet', {
-                    filters: aFilters,
+                    filters: aSmartFilter,
                     success: function (oData) {
                         if (oData.results.length > 0) {
                             oData.results.sort((a,b) => (a.DLVNO < b.DLVNO ? 1 : -1));
@@ -682,12 +727,12 @@ sap.ui.define([
                 // this.byId("btnManualAssign").setEnabled(false);
             },
 
-            setSmartFilterModel: function () {
-                //Model StyleHeaderFilters is for the smartfilterbar
-                var oModel = this.getOwnerComponent().getModel("ZVB_3DERP_SHIPDOC_FILTERS_CDS");
-                var oSmartFilter = this.getView().byId("smartFilterBar");
-                oSmartFilter.setModel(oModel);
-            },
+            // setSmartFilterModel: function () {
+            //     //Model StyleHeaderFilters is for the smartfilterbar
+            //     var oModel = this.getOwnerComponent().getModel("ZVB_3DERP_SHIPDOC_FILTERS_CDS");
+            //     var oSmartFilter = this.getView().byId("smartFilterBar");
+            //     oSmartFilter.setModel(oModel);
+            // },
             
             getDynamicColumns(arg1, arg2, arg3) {
                 var sType = arg1;
@@ -904,59 +949,67 @@ sap.ui.define([
                 //date/number sorting
                 oTable.attachSort(function(oEvent) {
                     var sPath = oEvent.getParameter("column").getSortProperty();
-                    var bDescending = false;
-                    
-                    //remove sort icon of currently sorted column
-                    oTable.getColumns().forEach(col => {
-                        if (col.getSorted()) {
-                            col.setSorted(false);
+                    var bMultiSort = oEvent.getParameter("columnAdded");
+                    var bDescending, sSortOrder, oSorter, oColumn, columnType;
+                    var aSorts = [];
+
+                    if (!bMultiSort) {
+                        oTable.getColumns().forEach(col => {
+                            if (col.getSorted()) {
+                                col.setSorted(false);
+                            }
+                        })
+                    }
+                    console.log()
+                    oTable.getSortedColumns().forEach(col => {
+                        if (col.getProperty("name") === sPath) {
+                            sSortOrder = oEvent.getParameter("sortOrder");
+                            oEvent.getParameter("column").setSorted(true); //sort icon indicator
+                            oEvent.getParameter("column").setSortOrder(sSortOrder); //set sort order                          
                         }
+                        else {
+                            sSortOrder = col.getProperty("sortOrder");
+                        }
+
+                        bDescending = (sSortOrder === "Descending" ? true : false);
+                        oSorter = new sap.ui.model.Sorter(col.getProperty("name"), bDescending); //sorter(columnData, If Ascending(false) or Descending(True))
+                        oColumn = oColumns.filter(fItem => fItem.ColumnName === col.getProperty("name"));
+                        columnType = oColumn[0].DataType;
+
+                        if (columnType === "DATETIME") {
+                            oSorter.fnCompare = function(a, b) {
+                                // parse to Date object
+                                var aDate = new Date(a);
+                                var bDate = new Date(b);
+    
+                                if (bDate === null) { return -1; }
+                                if (aDate === null) { return 1; }
+                                if (aDate < bDate) { return -1; }
+                                if (aDate > bDate) { return 1; }
+    
+                                return 0;
+                            };
+                        }
+                        else if (columnType === "NUMBER") {
+                            oSorter.fnCompare = function(a, b) {
+                                // parse to Date object
+                                var aNumber = +a;
+                                var bNumber = +b;
+    
+                                if (bNumber === null) { return -1; }
+                                if (aNumber === null) { return 1; }
+                                if (aNumber < bNumber) { return -1; }
+                                if (aNumber > bNumber) { return 1; }
+    
+                                return 0;
+                            };
+                        }
+
+                        aSorts.push(oSorter);
                     })
 
-                    oEvent.getParameter("column").setSorted(true); //sort icon initiator
+                    oTable.getBinding('rows').sort(aSorts);
 
-                    if (oEvent.getParameter("sortOrder") === "Descending") {
-                        bDescending = true;
-                        oEvent.getParameter("column").setSortOrder("Descending") //sort icon Descending
-                    }
-                    else {
-                        oEvent.getParameter("column").setSortOrder("Ascending") //sort icon Ascending
-                    }
-
-                    var oSorter = new sap.ui.model.Sorter(sPath, bDescending ); //sorter(columnData, If Ascending(false) or Descending(True))
-                    var oColumn = oColumns.filter(fItem => fItem.ColumnName === oEvent.getParameter("column").getProperty("sortProperty"));
-                    var columnType = oColumn[0].DataType;
-
-                    if (columnType === "DATETIME") {
-                        oSorter.fnCompare = function(a, b) {
-                            // parse to Date object
-                            var aDate = new Date(a);
-                            var bDate = new Date(b);
-
-                            if (bDate === null) { return -1; }
-                            if (aDate === null) { return 1; }
-                            if (aDate < bDate) { return -1; }
-                            if (aDate > bDate) { return 1; }
-
-                            return 0;
-                        };
-                    }
-                    else if (columnType === "NUMBER") {
-                        oSorter.fnCompare = function(a, b) {
-                            // parse to Date object
-                            var aNumber = +a;
-                            var bNumber = +b;
-
-                            if (bNumber === null) { return -1; }
-                            if (aNumber === null) { return 1; }
-                            if (aNumber < bNumber) { return -1; }
-                            if (aNumber > bNumber) { return 1; }
-
-                            return 0;
-                        };
-                    }
-                    
-                    oTable.getBinding('rows').sort(oSorter);
                     // prevent internal sorting by table
                     oEvent.preventDefault();
                 });
@@ -1050,41 +1103,30 @@ sap.ui.define([
             },
 
             onTableResize: function(oEvent) {
+                var oSplitter = this.byId("splitterMain");
+                var oHeaderPane = oSplitter.getRootPaneContainer().getPanes().at(0);
+                var oDetailPane = oSplitter.getRootPaneContainer().getPanes().at(1);
+                var vFullScreen = oEvent.getSource().data("Fullscreen") === "1" ? true : false;
+                var vPart = oEvent.getSource().data("Part");
+                var vHeaderSize = oEvent.getSource().data("HeaderSize");
+                var vDetailSize = oEvent.getSource().data("DetailSize");
+
                 this._sActiveTable = oEvent.getSource().data("TableId");
+                this.getView().getModel("ui").setProperty("/fullscreen/" + vPart, vFullScreen);
+                this.byId("smartFilterBar").setVisible(!vFullScreen);
 
-                var vFullScreen = oEvent.getSource().data("Max") === "1" ? true : false;
-                var vSuffix = oEvent.getSource().data("ButtonIdSuffix");
-                var vHeader = oEvent.getSource().data("Header");
-                var me = this;
+                var oHeaderLayoutData = new sap.ui.layout.SplitterLayoutData({
+                    size: vHeaderSize,
+                    resizable: false
+                });
 
-                // this.byId("smartFilterBar").setFilterBarExpanded(!vFullScreen);
-                // this.byId('smartFilterBar').setVisible(!vFullScreen)
-                this.byId("btnFullScreen" + vSuffix).setVisible(!vFullScreen);
-                this.byId("btnExitFullScreen" + vSuffix).setVisible(vFullScreen);
-                // this._oTables.filter(fItem => fItem.TableId !== me._sActiveTable).forEach(item => me.byId(item.TableId).setVisible(!vFullScreen));
-                // this.byId("splitter").enableAutoResize();
+                var oDetailLayoutData = new sap.ui.layout.SplitterLayoutData({
+                    size: vDetailSize,
+                    resizable: false
+                });
 
-                if (vFullScreen) {
-                    // this.byId("splitter").getAggregation("layoutData").setGrowFactor(1);
-
-                    if (vHeader === "1") {
-                        this.byId("splitterHdr").setProperty("size", "100%");
-                        this.byId("splitterDtl").setProperty("size", "0%");
-                    }
-                    else {
-                        this.byId("splitterHdr").setProperty("size", "0%");
-                        this.byId("splitterDtl").setProperty("size", "100%");
-                    }
-
-                    // this.byId("splitter").disableLiveResize();
-                }
-                else {
-                    // this.byId("smartFilterBar").getAggregation("layoutData").setGrowFactor(0.1);
-                    // this.byId("splitter").getAggregation("layoutData").setGrowFactor(0.9);
-                    this.byId("splitterHdr").setProperty("size", "50%");
-                    this.byId("splitterDtl").setProperty("size", "50%");
-                    // this.byId("splitter").enableLiveResize();
-                }
+                oHeaderPane.setLayoutData(oHeaderLayoutData);
+                oDetailPane.setLayoutData(oDetailLayoutData);
             },
 
             onSaveTableLayout: function (oEvent) {
@@ -1455,6 +1497,22 @@ sap.ui.define([
             onRemoveColFilter: function(oEvent) {
                 TableFilter.onRemoveColFilter(oEvent, this);
             },
+
+            //******************************************* */
+            // Smart Filter
+            //******************************************* */
+
+            beforeVariantFetch: function(oEvent) {
+                SmartFilterCustomControl.beforeVariantFetch(this);
+            },
+
+            afterVariantLoad: function(oEvent) {
+                SmartFilterCustomControl.afterVariantLoad(this);
+            },
+
+            clearSmartFilters: function(oEvent) {
+                SmartFilterCustomControl.clearSmartFilters(this);
+            }            
 
         });
     });

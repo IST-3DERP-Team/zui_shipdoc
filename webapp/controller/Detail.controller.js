@@ -255,7 +255,10 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
             })); 
 
             this.getView().setModel(new JSONModel({
-                fullscreen: false,
+                fullscreen: {
+                    header: false,
+                    detail: false
+                },
                 dataWrap: {
                     delvSchedTab: false,
                     delvDtlTab: false,
@@ -2236,32 +2239,29 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
         },
 
         onTableResize: function(oEvent) {
-            var vFullScreen = oEvent.getSource().data("Max") === "1" ? true : false;
+            var oSplitter = this.byId("splitterMain");
+            var oHeaderPane = oSplitter.getRootPaneContainer().getPanes().at(0);
+            var oDetailPane = oSplitter.getRootPaneContainer().getPanes().at(1);
+            var vFullScreen = oEvent.getSource().data("Fullscreen") === "1" ? true : false;
+            var vPart = oEvent.getSource().data("Part");
+            var vHeaderSize = oEvent.getSource().data("HeaderSize");
+            var vDetailSize = oEvent.getSource().data("DetailSize");
 
-            // this.byId("delvHdrForm").setVisible(!vFullScreen);
-            this.getView().getModel("ui").setProperty("/fullscreen", vFullScreen); 
-            
-            // if (oEvent.getSource().getId().indexOf("ExitFullScreen") >= 0) {
-            //     this.byId("delvHdrForm").setVisible(true);
-            //     oEvent.getSource().setVisible(true);
-            //     this.byId(oEvent.getSource().data("ExitFullScreen")).setVisible(false);
-            //     // this.byId("btnFullScreenDelvSched").setVisible(true);
-            //     // this.byId("btnExitFullScreenDelvSched").setVisible(false);
-            // }
-            // else {
-            //     this.byId("delvHdrForm").setVisible(false);
-            //     this.byId("btnFullScreenDelvSched").setVisible(false);
-            //     this.byId("btnExitFullScreenDelvSched").setVisible(true);
-            // }
+            this._sActiveTable = oEvent.getSource().data("TableId");
+            this.getView().getModel("ui").setProperty("/fullscreen/" + vPart, vFullScreen);
 
-            if (vFullScreen) {
-                this.byId("splitterHdr").setProperty("size", "0%");
-                this.byId("splitterDtl").setProperty("size", "100%");
-            }
-            else {
-                this.byId("splitterHdr").setProperty("size", "275px");
-                this.byId("splitterDtl").setProperty("size", "auto");
-            }
+            var oHeaderLayoutData = new sap.ui.layout.SplitterLayoutData({
+                size: vHeaderSize,
+                resizable: false
+            });
+
+            var oDetailLayoutData = new sap.ui.layout.SplitterLayoutData({
+                size: vDetailSize,
+                resizable: false
+            });
+
+            oHeaderPane.setLayoutData(oHeaderLayoutData);
+            oDetailPane.setLayoutData(oDetailLayoutData);
         },
 
         setHeaderFieldsEditable(arg) {            
