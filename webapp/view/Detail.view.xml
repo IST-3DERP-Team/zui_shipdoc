@@ -546,7 +546,7 @@
                                     </layoutData>
                                 </Panel>
                                 <uiL:layoutData>
-                                    <uiL:SplitterLayoutData size="30%"/>
+                                    <uiL:SplitterLayoutData size="275px"/>
                                 </uiL:layoutData>
                             </uiL:SplitPane>
 
@@ -652,7 +652,7 @@
                                                                 <core:CustomData key="Fullscreen" value="1" />
                                                                 <core:CustomData key="Part" value="detail" />
                                                                 <core:CustomData key="HeaderSize" value="0%" />
-                                                                <core:CustomData key="DetailSize" value="100%" />
+                                                                <core:CustomData key="DetailSize" value="102%" />
                                                             </customData>
                                                         </Button>
                                                         <Button id="btnExitFullScreenDelvSched" 
@@ -664,8 +664,8 @@
                                                                 <core:CustomData key="TableId" value="delvSchedTab" />
                                                                 <core:CustomData key="Fullscreen" value="0" />
                                                                 <core:CustomData key="Part" value="detail" />
-                                                                <core:CustomData key="HeaderSize" value="30%" />
-                                                                <core:CustomData key="DetailSize" value="70%" />
+                                                                <core:CustomData key="HeaderSize" value="275px" />
+                                                                <core:CustomData key="DetailSize" value="auto" />
                                                             </customData>
                                                         </Button>
                                                         <Button id="btnTabLayoutDelvSched"
@@ -742,7 +742,7 @@
                                                             <core:CustomData key="Fullscreen" value="1" />
                                                             <core:CustomData key="Part" value="detail" />
                                                             <core:CustomData key="HeaderSize" value="0%" />
-                                                            <core:CustomData key="DetailSize" value="100%" />
+                                                            <core:CustomData key="DetailSize" value="102%" />
                                                         </customData>
                                                     </Button>
                                                     <Button id="btnExitFullScreenShipDtl" 
@@ -754,8 +754,8 @@
                                                             <core:CustomData key="TableId" value="shipDtlForm" />
                                                             <core:CustomData key="Fullscreen" value="0" />
                                                             <core:CustomData key="Part" value="detail" />
-                                                            <core:CustomData key="HeaderSize" value="30%" />
-                                                            <core:CustomData key="DetailSize" value="70%" />
+                                                            <core:CustomData key="HeaderSize" value="275px" />
+                                                            <core:CustomData key="DetailSize" value="auto" />
                                                         </customData>
                                                     </Button>
                                                 </OverflowToolbar>
@@ -1327,7 +1327,7 @@
                                                                 <core:CustomData key="Fullscreen" value="1" />
                                                                 <core:CustomData key="Part" value="detail" />
                                                                 <core:CustomData key="HeaderSize" value="0%" />
-                                                                <core:CustomData key="DetailSize" value="100%" />
+                                                                <core:CustomData key="DetailSize" value="102%" />
                                                             </customData>
                                                         </Button>
                                                         <Button id="btnExitFullScreenDelvDtl" 
@@ -1339,8 +1339,8 @@
                                                                 <core:CustomData key="TableId" value="delvDtlTab" />
                                                                 <core:CustomData key="Fullscreen" value="0" />
                                                                 <core:CustomData key="Part" value="detail" />
-                                                                <core:CustomData key="HeaderSize" value="30%" />
-                                                                <core:CustomData key="DetailSize" value="70%" />
+                                                                <core:CustomData key="HeaderSize" value="275px" />
+                                                                <core:CustomData key="DetailSize" value="auto" />
                                                             </customData>
                                                         </Button>
                                                         <Button id="btnTabLayoutDelvDtl"
@@ -1408,7 +1408,7 @@
                                                                 <core:CustomData key="Fullscreen" value="1" />
                                                                 <core:CustomData key="Part" value="detail" />
                                                                 <core:CustomData key="HeaderSize" value="0%" />
-                                                                <core:CustomData key="DetailSize" value="100%" />
+                                                                <core:CustomData key="DetailSize" value="102%" />
                                                             </customData>
                                                         </Button>
                                                         <Button id="btnExitFullScreenDelvStat" 
@@ -1420,8 +1420,8 @@
                                                                 <core:CustomData key="TableId" value="delvStatTab" />
                                                                 <core:CustomData key="Fullscreen" value="0" />
                                                                 <core:CustomData key="Part" value="detail" />
-                                                                <core:CustomData key="HeaderSize" value="30%" />
-                                                                <core:CustomData key="DetailSize" value="70%" />
+                                                                <core:CustomData key="HeaderSize" value="275px" />
+                                                                <core:CustomData key="DetailSize" value="auto" />
                                                             </customData>
                                                         </Button>
                                                         <Button id="btnTabLayoutDelvStat"
@@ -1454,7 +1454,7 @@
                                     </layoutData>
                                 </IconTabBar>
                                 <uiL:layoutData>
-                                    <uiL:SplitterLayoutData size="70%"/>
+                                    <uiL:SplitterLayoutData size="auto"/>
                                 </uiL:layoutData>
                             </uiL:SplitPane>
                         

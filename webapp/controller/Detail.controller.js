@@ -2252,13 +2252,15 @@ function (Controller, JSONModel, MessageBox, History, MessageToast, Common, Tabl
 
             var oHeaderLayoutData = new sap.ui.layout.SplitterLayoutData({
                 size: vHeaderSize,
-                resizable: false
+                resizable: !vFullScreen
             });
 
             var oDetailLayoutData = new sap.ui.layout.SplitterLayoutData({
                 size: vDetailSize,
-                resizable: false
+                resizable: !vFullScreen
             });
+
+            document.getElementsByClassName("sapUiLoSplitterBar")[0].setAttribute("style", "display: " + (vFullScreen ? "none" : "flex"));
 
             oHeaderPane.setLayoutData(oHeaderLayoutData);
             oDetailPane.setLayoutData(oDetailLayoutData);

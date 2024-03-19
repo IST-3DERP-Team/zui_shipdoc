@@ -237,7 +237,7 @@
                                                     <core:CustomData key="Fullscreen" value="1" />
                                                     <core:CustomData key="Part" value="detail" />
                                                     <core:CustomData key="HeaderSize" value="0%" />
-                                                    <core:CustomData key="DetailSize" value="100%" />
+                                                    <core:CustomData key="DetailSize" value="102%" />
                                                 </customData>
                                             </Button>
                                             <Button id="btnExitFullScreenDtl" 
